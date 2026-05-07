@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fila Agentes</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --grad-inicio: #040722;
+            --grad-fim: #0a080e;
+            --card-bg: rgba(43, 39, 39, 0.233);
+            --item-bg: rgba(26, 28, 35, 0.8);
+            --text-main: #e0e6ed;
+            --text-dim: #94a3b8;
+            --accent: #6c63ff;
+            --online: #4caf50;
+            --busy: #f39c12;
+            --offline: #ff5f5f;
+            --radius: 24px;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, var(--grad-inicio) 0%, var(--grad-fim) 100%);
+            background-attachment: fixed;
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* Container expandido para ocupação horizontal na TV */
+        .container {
+            background: var(--card-bg);
+            padding: 2rem;
+            border-radius: var(--radius);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            width: 95%;
+            /* Ocupa quase toda a largura */
+            max-width: 1600px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .container {
+            -webkit-backdrop-filter: blur(5px);
+            backdrop-filter: blur(50px);
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 2rem;
+            font-weight: 600;
+            font-size: 1.8rem;
+            letter-spacing: 1px;
+        }
+
+        .topo {
+            display: flex;
+            justify-content: flex-end;
+            width: 95%;
+            max-width: 1600px;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        button {
+            background: #2a2e37;
+            color: var(--text-main);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.3s;
+            font-family: inherit;
+        }
+
+        button:hover {
+            background: #3f4451;
+        }
+
+        /* --- AJUSTE PARA GRID DE 5 COLUNAS --- */
+        .agent-list {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            /* 5 colunas iguais */
+            gap: 15px;
+        }
+
+        .agent-card {
+            background: var(--item-bg);
+            border-radius: 16px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            /* Conteúdo empilhado no card */
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            transition: all 0.3s ease;
+            position: relative;
+            text-align: center;
+        }
+
+        .agent-card.active {
+            border-color: var(--online);
+            box-shadow: 0 0 15px rgba(76, 175, 80, 0.2);
+            transform: scale(1.02);
+        }
+
+        .agent-info {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .posicao {
+            font-size: 1.2rem;
+            color: var(--accent);
+            font-weight: 600;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 2px 12px;
+            border-radius: 20px;
+        }
+
+        .nome {
+            font-weight: 500;
+            font-size: 1.1rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100%;
+        }
+
+        .conversas {
+            color: var(--text-dim);
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        /* Status no canto superior do card */
+        .status-dot {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .status-dot.online {
+            background: var(--online);
+            box-shadow: 0 0 10px var(--online);
+        }
+
+        .status-dot.busy {
+            background: var(--busy);
+            box-shadow: 0 0 10px var(--busy);
+        }
+
+        .status-dot.offline {
+            background: var(--offline);
+            box-shadow: 0 0 10px var(--offline);
+        }
+
+        /* Ajuste para telas menores (Responsividade) */
+        @media (max-width: 1200px) {
+            .agent-list {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (max-width: 800px) {
+            .agent-list {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="topo">
+        <button id="btnLogin" onclick="login()">Login</button>
+        <button id="btnAdmin" onclick="admin()" style="display:none;">Painel Admin</button>
+        <button id="btnLogout" onclick="logout()" style="display:none;">Sair</button>
+    </div>
+
+    <div class="container">
+        <h2>Agentes - Suporte</h2>
+        <div id="lista" class="agent-list">
+        </div>
+    </div>
+
+    <script>
+        async function verificar() {
+            try {
+                const res = await fetch('/agents/me', { credentials: 'include' });
+                const data = await res.json();
+                if (data.logado) {
+                    document.getElementById('btnLogin').style.display = 'none';
+                    document.getElementById('btnLogout').style.display = 'inline';
+                    if (data.tipo === 'admin') document.getElementById('btnAdmin').style.display = 'inline';
+                }
+            } catch (err) { console.error(err); }
+        }
+
+        async function carregar() {
+            try {
+                const res = await fetch('/agents/fila', { credentials: 'include' });
+                const data = await res.json();
+                const lista = document.getElementById('lista');
+                lista.innerHTML = '';
+
+                data.forEach((a, index) => {
+                    const card = document.createElement('div');
+                    const isAtivo = a.ultimoChamado ? 'active' : '';
+                    card.className = `agent-card ${isAtivo}`;
+
+                    card.innerHTML = `
+                <div class="status-dot ${a.status}"></div>
+                <div class="agent-info">
+                    <span class="posicao">${index + 1}º</span>
+                    <span class="nome">${a.nome}</span>
+                    <span class="conversas">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                        ${a.conversas} conversas
+                    </span>
+                </div>
+            `;
+                    lista.appendChild(card);
+                });
+            } catch (err) { console.error(err); }
+        }
+
+        function login() { window.location = '/login'; }
+        function admin() { window.location = '/admin'; }
+        function logout() { window.location = '/logout'; }
+
+        verificar();
+        carregar();
+        setInterval(carregar, 3000);
+    </script>
+
+</body>
+
+</html>

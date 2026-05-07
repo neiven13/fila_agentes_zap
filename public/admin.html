@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestão de Agentes - Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --grad-inicio: #040722;
+      --grad-fim: #0a080e;
+      --card-bg: rgba(43, 39, 39, 0.233);
+      --item-bg: #1a1c23;
+      --text-main: #e0e6ed;
+      --text-dim: #94a3b8;
+      --accent: #6c63ff;
+      --danger: #ff5f5f;
+      --online: #4caf50;
+      --radius: 20px;
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, var(--grad-inicio) 0%, var(--grad-fim) 100%);
+      background-attachment: fixed;
+      color: var(--text-main);
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      /* Permite scroll se a lista for longa */
+      min-height: 100vh;
+      padding: 40px 20px;
+    }
+
+    .container {
+      background: var(--card-bg);
+      padding: 2.5rem;
+      border-radius: var(--radius);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      width: 100%;
+      max-width: 500px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .container {
+      -webkit-backdrop-filter: blur(5px);
+      backdrop-filter: blur(50px);
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+    }
+
+    h2 {
+      margin: 0;
+      font-size: 1.4rem;
+      font-weight: 600;
+    }
+
+    .nav-btns {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    /* Botões */
+    .btn {
+      background: #2a2e37;
+      color: var(--text-main);
+      border: none;
+      padding: 10px 16px;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: 0.3s;
+      font-family: inherit;
+      font-size: 0.85rem;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .btn:hover {
+      background: #3f4451;
+    }
+
+    .btn-add {
+      background: var(--accent);
+      font-weight: 500;
+    }
+
+    .btn-add:hover {
+      background: #5a52d4;
+    }
+
+    /* Filtro Inativos */
+    .filter-area {
+      margin-bottom: 20px;
+      font-size: 0.85rem;
+      color: var(--text-dim);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Lista de Agentes */
+    #lista {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .card {
+      background: var(--item-bg);
+      border-radius: 16px;
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border: 1px solid rgba(255, 255, 255, 0.03);
+      cursor: grab;
+      transition: transform 0.2s, background 0.2s;
+    }
+
+    .card:active {
+      cursor: grabbing;
+    }
+
+    .card.dragging {
+      opacity: 0.5;
+      transform: scale(0.98);
+    }
+
+    .card.inativo {
+      opacity: 0.4;
+      filter: grayscale(1);
+    }
+
+    .agent-id {
+      font-size: 0.75rem;
+      color: var(--text-dim);
+      display: block;
+    }
+
+    /* Estilo do Toggle (Switch) */
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 44px;
+      height: 24px;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #3f4451;
+      transition: .4s;
+      border-radius: 34px;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: .4s;
+      border-radius: 50%;
+    }
+
+    input:checked+.slider {
+      background-color: var(--online);
+    }
+
+    input:checked+.slider:before {
+      transform: translateX(20px);
+    }
+
+    .drag-icon {
+      color: var(--text-dim);
+      margin-right: 15px;
+      font-size: 1.2rem;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="container">
+    <div class="header">
+      <h2>Gestão de Agentes</h2>
+      <button class="btn btn-add" onclick="novo()">+ Novo</button>
+    </div>
+
+    <div class="nav-btns">
+      <button class="btn" onclick="irOperacao()">🎯 Operação</button>
+      <button class="btn" onclick="logout()" style="color: var(--danger)">🚪 Sair</button>
+    </div>
+
+    <div class="filter-area">
+      <input type="checkbox" id="showInativos" onchange="carregar()" style="accent-color: var(--accent);">
+      <label for="showInativos">Mostrar agentes inativos</label>
+    </div>
+
+    <div id="lista">
+    </div>
+  </div>
+
+  <script>
+    async function carregar() {
+      try {
+        const res = await fetch('/agents/admin/list', { credentials: 'include' });
+        if (res.status !== 200) { window.location = '/'; return; }
+
+        const agentes = await res.json();
+        const showInativos = document.getElementById('showInativos').checked;
+        const lista = document.getElementById('lista');
+        lista.innerHTML = '';
+
+        agentes
+          .filter(a => showInativos || a.ativo === 1)
+          .forEach(a => {
+            const div = document.createElement('div');
+            div.className = `card ${a.ativo === 0 ? 'inativo' : ''}`;
+            div.draggable = true;
+            div.dataset.id = a.id;
+
+            div.innerHTML = `
+                        <div style="display: flex; align-items: center;">
+                            <span class="drag-icon">⠿</span>
+                            <div>
+                                <span style="font-weight: 500;">${a.nome}</span>
+                                <span class="agent-id">ID: ${a.id}</span>
+                            </div>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" ${a.ativo ? 'checked' : ''} onchange="toggle(${a.id})">
+                            <span class="slider"></span>
+                        </label>
+                    `;
+
+            div.addEventListener('dragstart', dragStart);
+            div.addEventListener('dragover', dragOver);
+            div.addEventListener('drop', drop);
+            div.addEventListener('dragend', () => div.classList.remove('dragging'));
+
+            lista.appendChild(div);
+          });
+      } catch (err) { console.error(err); }
+    }
+
+    let dragId = null;
+
+    function dragStart(e) {
+      dragId = e.target.closest('.card').dataset.id;
+      e.target.closest('.card').classList.add('dragging');
+    }
+
+    function dragOver(e) { e.preventDefault(); }
+
+    async function drop(e) {
+      const target = e.target.closest('.card');
+      if (!target || target.dataset.id === dragId) return;
+
+      const targetId = target.dataset.id;
+
+      await fetch('/agents/admin/reorder', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ dragId, targetId }),
+        credentials: 'include'
+      });
+
+      carregar();
+    }
+
+    async function toggle(id) {
+      await fetch('/agents/admin/toggle', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id }),
+        credentials: 'include'
+      });
+      carregar();
+    }
+
+    function irOperacao() { window.location = '/fila'; }
+    function novo() { window.location = '/novo'; }
+    function logout() { window.location = '/logout'; }
+
+    carregar();
+  </script>
+
+</body>
+
+</html>

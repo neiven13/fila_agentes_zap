@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel de Operação - Triagem (TV)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --grad-inicio: #040722;
+            --grad-fim: #0a080e;
+            --card-bg: rgba(43, 39, 39, 0.233);
+            --item-bg: #1a1c23;
+            --text-main: #e0e6ed;
+            --text-dim: #94a3b8;
+            --accent: #6c63ff;
+            --online: #4caf50;
+            --busy: #f39c12;
+            --offline: #ff5f5f;
+            --radius: 24px;
+        }
+
+        body { 
+            font-family: 'Poppins', sans-serif; 
+            background: linear-gradient(135deg, var(--grad-inicio) 0%, var(--grad-fim) 100%);
+            background-attachment: fixed;
+            color: var(--text-main);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        /* Container expandido para largura de TV */
+        .container {
+            background: var(--card-bg);
+            padding: 2.5rem;
+            border-radius: var(--radius);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            width: 95%;
+            max-width: 1600px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .container {
+            -webkit-backdrop-filter: blur(5px);
+            backdrop-filter: blur(50px);
+        }
+
+        .header-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        /* Área central de comando */
+        .controls {
+            max-width: 500px;
+            margin: 0 auto 2.5rem;
+            text-align: center;
+        }
+
+        h2 { margin-bottom: 1.5rem; font-weight: 600; font-size: 1.8rem; text-align: center; }
+
+        .btn {
+            background: #2a2e37;
+            color: var(--text-main);
+            border: none;
+            padding: 12px 20px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: 0.3s;
+            font-family: inherit;
+            font-size: 0.9rem;
+            text-decoration: none;
+        }
+
+        .btn:hover { background: #3f4451; }
+
+        .btn-primary {
+            background: var(--accent);
+            width: 100%;
+            padding: 20px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            box-shadow: 0 8px 20px rgba(108, 99, 255, 0.3);
+            border-radius: 16px;
+        }
+
+        .btn-primary:hover { background: #5a52d4; transform: translateY(-2px); }
+
+        #resultado {
+            background: rgba(108, 99, 255, 0.1);
+            color: var(--accent);
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+            margin-bottom: 1.5rem;
+            font-size: 1.1rem;
+            border: 2px dashed var(--accent);
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* --- GRID DE 5 COLUNAS PARA OPERAÇÃO --- */
+        .agent-list { 
+            display: grid; 
+            grid-template-columns: repeat(5, 1fr); 
+            gap: 15px; 
+        }
+
+        .agent-card {
+            background: var(--item-bg);
+            border-radius: 18px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            justify-content: center;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            transition: 0.3s;
+            position: relative;
+            min-height: 100px;
+        }
+
+        .agent-card.active {
+            border-color: var(--online);
+            background: rgba(76, 175, 80, 0.08);
+            box-shadow: 0 0 20px rgba(76, 175, 80, 0.15);
+            transform: scale(1.03);
+        }
+
+        .info-box { display: flex; flex-direction: column; gap: 5px; }
+        .nome { font-weight: 600; font-size: 1.1rem; }
+        .conversas { color: var(--text-dim); font-size: 0.85rem; }
+
+        .status-indicator {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .online-dot { background: var(--online); box-shadow: 0 0 10px var(--online); }
+        .busy-dot { background: var(--busy); box-shadow: 0 0 10px var(--busy); }
+        .offline-dot { background: var(--offline); }
+
+        /* Responsividade para TVs menores */
+        @media (max-width: 1400px) { .agent-list { grid-template-columns: repeat(4, 1fr); } }
+        @media (max-width: 1000px) { .agent-list { grid-template-columns: repeat(2, 1fr); } }
+
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+    <div class="header-actions">
+        <button class="btn" onclick="voltar()">← Home</button>
+        <button class="btn" style="color: var(--offline)" onclick="logout()">Sair</button>
+    </div>
+
+    <h2>Painel de Operação</h2>
+
+    <div class="controls">
+        <div id="resultado"></div>
+        <button class="btn btn-primary" onclick="proximo()">🔔 Próximo Agente</button>
+    </div>
+
+    <div class="agent-list" id="lista">
+        </div>
+</div>
+
+<script>
+    async function carregar() {
+        try {
+            const res = await fetch('/agents/fila', { credentials: 'include' });
+            const data = await res.json();
+            const container = document.getElementById('lista');
+            container.innerHTML = '';
+
+            data.forEach(a => {
+                const card = document.createElement('div');
+                const isAtivo = a.ultimoChamado ? 'active' : '';
+                card.className = `agent-card ${isAtivo}`;
+
+                const statusClass = a.status === 'online' ? 'online-dot' : 
+                                   a.status === 'busy' ? 'busy-dot' : 'offline-dot';
+
+                card.innerHTML = `
+                    <div class="status-indicator ${statusClass}"></div>
+                    <div class="info-box">
+                        <span class="nome">${a.nome}</span>
+                        <span class="conversas">${a.conversas} em aberto</span>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        } catch (err) { console.error("Erro ao carregar fila", err); }
+    }
+
+    async function proximo() {
+        try {
+            const res = await fetch('/agents/proximo', { credentials: 'include' });
+            const data = await res.json();
+            const resDiv = document.getElementById('resultado');
+            resDiv.style.display = 'block';
+            
+            if(data.nome) {
+                resDiv.innerHTML = `✅ <strong>${data.nome}</strong> foi selecionado!`;
+                carregar(); 
+            } else {
+                resDiv.innerHTML = `⚠️ ${data.mensagem}`;
+            }
+
+            setTimeout(() => { resDiv.style.display = 'none'; }, 5000);
+        } catch (err) { console.error("Erro ao chamar próximo", err); }
+    }
+
+    function voltar() { window.location = '/'; }
+    function logout() { window.location = '/logout'; }
+
+    setInterval(carregar, 3000);
+    carregar();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,28 @@
+{
+  "name": "fila_agentes",
+  "version": "1.0.0",
+  "description": "Sistema de Fila de Agentes",
+  "main": "server.js",
+  "bin": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "build": "pkg . --targets node18-win-x64 --output dist/fila-agentes.exe"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "express": "^5.2.1",
+    "express-session": "^1.19.0",
+    "node-fetch": "^2.7.0",
+    "sqlite3": "^6.0.1"
+  },
+  "pkg": {
+    "assets": [
+      "public/**/*",
+      "routes/**/*",
+      "controllers/**/*"
+    ]
+  }
+}

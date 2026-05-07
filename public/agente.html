@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel do Agente</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --grad-inicio: #040722;
+            --grad-fim: #0a080e;
+            --card-bg: rgba(43, 39, 39, 0.233);
+            --input-bg: #1a1c23;
+            --text-main: #e0e6ed;
+            --text-dim: #94a3b8;
+            --accent: #6c63ff;
+            --danger: #ff5f5f;
+            --radius: 24px;
+            
+            /* Cores de Status */
+            --status-online: #2ecc71;
+            --status-busy: #f1c40f;
+            --status-offline: #e74c3c;
+        }
+
+        body { 
+            font-family: 'Poppins', sans-serif; 
+            background: linear-gradient(135deg, var(--grad-inicio) 0%, var(--grad-fim) 100%);
+            background-attachment: fixed;
+            color: var(--text-main);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .card {
+            background: var(--card-bg);
+            padding: 3.5rem 2.5rem;
+            border-radius: var(--radius);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            width: 100%;
+            max-width: 350px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            text-align: center;
+            position: relative; /* Necessário para o círculo de status */
+        }
+
+        .card {
+            -webkit-backdrop-filter: blur(5px);
+            backdrop-filter: blur(50px);
+        }
+
+        /* --- INDICADOR DE STATUS (MARCAÇÃO VERMELHA) --- */
+        .status-indicator-container {
+            position: absolute;
+            top: 25px;
+            right: 25px;
+        }
+
+        .status-dot {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            background-color: var(--status-offline);
+            transition: all 0.4s ease;
+            box-shadow: 0 0 20px rgba(231, 76, 60, 0.2);
+        }
+
+        /* Estados do Brilho */
+        .status-dot.online {
+            background-color: var(--status-online);
+            box-shadow: 0 0 25px var(--status-online), 0 0 25px rgba(46, 204, 113, 0.4);
+        }
+
+        .status-dot.busy {
+            background-color: var(--status-busy);
+            box-shadow: 0 0 25px var(--status-busy), 0 0 25px rgba(241, 196, 15, 0.4);
+        }
+
+        .status-dot.offline {
+            background-color: var(--status-offline);
+            box-shadow: 0 0 25px var(--status-offline), 0 0 25px rgba(231, 76, 60, 0.4);
+        }
+
+        /* --- ELEMENTOS DO CARD --- */
+        h2 { margin: 0 0 0.5rem; font-weight: 600; font-size: 1.5rem; }
+        p { color: var(--text-dim); font-size: 0.9rem; margin-bottom: 2rem; }
+
+        select {
+            width: 100%;
+            padding: 14px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: var(--input-bg);
+            color: white;
+            font-family: inherit;
+            font-size: 0.95rem;
+            outline: none;
+            cursor: pointer;
+            transition: 0.3s;
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 14px center;
+            background-size: 16px;
+        }
+
+        select:focus { border-color: var(--accent); }
+
+        .status-msg {
+            margin-top: 20px;
+            font-size: 0.85rem;
+            min-height: 1.2rem;
+            font-weight: 500;
+        }
+
+        .logout-link {
+            display: inline-block;
+            margin-top: 30px;
+            color: var(--danger);
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 500;
+            opacity: 0.8;
+            transition: 0.3s;
+        }
+
+        .logout-link:hover { opacity: 1; text-decoration: underline; }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <div class="status-indicator-container">
+            <div id="statusCircle" class="status-dot"></div>
+        </div>
+
+        <h2 id="saudacao">Olá!</h2>
+        <p>Defina seu status de disponibilidade</p>
+        
+        <select id="statusSelect" onchange="mudarStatus(this.value)">
+            <option value="">Selecione um status...</option>
+            <option value="Online">🟢 Online</option>
+            <option value="Banheiro">🚽 Banheiro</option>
+            <option value="Almoço">🍽️ Almoço</option>
+            <option value="Treinamento">📚 Treinamento</option>
+            <option value="Prova">🧾 Prova</option>
+            <option value="Pausa - Suporte">🎧 Pausa - Suporte</option>
+        </select>
+
+        <div id="msg" class="status-msg"></div>
+        
+        <a href="/logout" class="logout-link">Encerrar Sessão</a>
+    </div>
+
+    <script>
+        // Função para carregar o nome dinâmico
+        async function carregarPerfil() {
+            try {
+                const response = await fetch('/agents/me'); 
+                const data = await response.json();
+                if (data.nome) {
+                    document.getElementById('saudacao').innerText = `Olá, ${data.nome}!`;
+                }
+            } catch (err) {
+                console.error("Erro ao carregar perfil:", err);
+            }
+        }
+
+        async function mudarStatus(statusPainel) {
+            if (!statusPainel) return;
+
+            const msgDiv = document.getElementById('msg');
+            const statusCircle = document.getElementById('statusCircle');
+            
+            // Atualiza o círculo brilhante antes do fetch para resposta instantânea
+            statusCircle.className = 'status-dot'; // Reseta
+            if (statusPainel === 'Online') {
+                statusCircle.classList.add('online');
+            } else {
+                statusCircle.classList.add('busy');
+            }
+
+            msgDiv.style.color = "var(--text-dim)";
+            msgDiv.innerText = "⏳ Atualizando no Chatwoot...";
+            
+            try {
+                const response = await fetch('/agents/update-status', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ statusPainel })
+                });
+                
+                if (response.ok) {
+                    msgDiv.style.color = "#4caf50";
+                    msgDiv.innerText = `✅ Status: ${statusPainel} definido!`;
+                } else {
+                    const errorData = await response.json();
+                    throw new Error(errorData.erro || "Erro na resposta");
+                }
+            } catch (err) {
+                statusCircle.className = 'status-dot offline'; // Indica erro no brilho
+                msgDiv.style.color = "var(--danger)";
+                msgDiv.innerText = "❌ Erro ao atualizar status.";
+            }
+        }
+
+        // Inicia a página buscando o nome do agente
+        carregarPerfil();
+    </script>
+</body>
+</html>

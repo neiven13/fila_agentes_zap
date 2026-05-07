@@ -1,0 +1,41 @@
+name: Gerar Release Automática
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write 
+
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20' 
+          cache: 'npm'
+
+      - name: Instalar dependências
+        run: npm install
+
+      - name: Rodar o Build
+        run: npm run build 
+
+      - name: Compactar pasta de build
+
+        run: zip -r release-build.zip dist package.json package-lock.json
+
+      - name: Criar Release no GitHub
+        uses: softprops/action-gh-release@v2
+        with:
+          files: release-build.zip
+          name: Release ${{ github.ref_name }}
+          body: "Build automático da versão ${{ github.ref_name }}"
+          draft: false
+          prerelease: false

@@ -30,11 +30,19 @@ jobs:
       - name: Gerar Executável (Build)
         run: npm run build
 
-      - name: Criar Release e Upload do .exe
+      - name: Organizar Arquivos da Release
+        run: |
+          mkdir -p release_zip/database
+          cp dist/fila-agentes.exe release_zip/
+          cp config.json release_zip/ || true
+          cp database/db.sqlite release_zip/database/ || touch release_zip/database/db.sqlite
+          zip -r fila-agentes-completo.zip release_zip/*
+
+      - name: Criar Release e Upload do Pack
         uses: softprops/action-gh-release@v2
         with:
-          files: dist/fila-agentes.exe
+          files: fila-agentes-completo.zip
           name: Fila de Agentes ${{ github.ref_name }}
-          body: "Release automática. Baixe o arquivo .exe para rodar no Windows."
+          body: "Release automática. Extraia o ZIP e execute o fila-agentes.exe."
           draft: false
           prerelease: false

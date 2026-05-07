@@ -33,9 +33,11 @@ jobs:
       - name: Organizar Arquivos da Release
         run: |
           mkdir -p release_zip/database
+          mkdir -p release_zip/node_modules/sqlite3
           cp dist/fila-agentes.exe release_zip/
           cp config.json release_zip/ || true
           cp database/db.sqlite release_zip/database/ || touch release_zip/database/db.sqlite
+          cp -r node_modules/sqlite3/* release_zip/node_modules/sqlite3/
           zip -r fila-agentes-completo.zip release_zip/*
 
       - name: Criar Release e Upload do Pack

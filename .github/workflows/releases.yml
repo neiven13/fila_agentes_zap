@@ -1,15 +1,18 @@
-name: Gerar Release Automática
+name: Gerar Release Executável
 
 on:
   push:
     tags:
       - 'v*'
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
-  build-and-release:
+  build-windows:
     runs-on: ubuntu-latest
     permissions:
-      contents: write 
+      contents: write
 
     steps:
       - name: Checkout do código
@@ -18,24 +21,20 @@ jobs:
       - name: Configurar Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '24' 
+          node-version: '20'
           cache: 'npm'
 
       - name: Instalar dependências
         run: npm install
 
-      - name: Rodar o Build
-        run: npm run build 
+      - name: Gerar Executável (Build)
+        run: npm run build
 
-      - name: Compactar pasta de build
-
-        run: zip -r release-build.zip dist package.json package-lock.json
-
-      - name: Criar Release no GitHub
+      - name: Criar Release e Upload do .exe
         uses: softprops/action-gh-release@v2
         with:
-          files: release-build.zip
-          name: Release ${{ github.ref_name }}
-          body: "Build automático da versão ${{ github.ref_name }}"
+          files: dist/fila-agentes.exe
+          name: Fila de Agentes ${{ github.ref_name }}
+          body: "Release automática. Baixe o arquivo .exe para rodar no Windows."
           draft: false
           prerelease: false

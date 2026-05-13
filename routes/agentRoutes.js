@@ -1,84 +1,167 @@
 const express = require('express');
 const router = express.Router();
-
+const statusMap = require('../config/statusMap');
 const controller = require('../controllers/agentController');
+const service = require('../services/agentService');
 const config = require('../config');
 const db = require('../database/db');
-
 // 🔐 middleware: Verifica se o usuário está logado
 function requireAuth(req, res, next) {
   if (!req.session.user) {
-    return res.status(401).json({ erro: 'Não autenticado' });
+    return res.status(401).json({
+      erro: 'Não autenticado'
+    });
   }
   next();
 }
-
 // 🔐 middleware: Verifica se o usuário é administrador
 function requireAdmin(req, res, next) {
-  if (!req.session.user || req.session.user.tipo !== 'admin') {
-    return res.status(403).json({ erro: 'Acesso negado' });
+  if (
+    !req.session.user ||
+    req.session.user.tipo !== 'admin'
+  ) {
+    return res.status(403).json({
+      erro: 'Acesso negado'
+    });
   }
   next();
 }
-
-// 🔑 LOGIN (Atualizado para direcionar automaticamente)
+// 🔑 LOGIN
 router.post('/login', (req, res) => {
   const { token } = req.body;
-
-  // 🧑‍💼 admin: Direciona para o painel administrativo
+  // 🧑‍💼 ADMIN
   if (token === config.supervisorToken) {
-    req.session.user = { tipo: 'admin' };
-    return res.json({ tipo: 'admin', redirect: '/admin' }); //
+    req.session.user = {
+      tipo: 'admin'
+    };
+    return res.json({
+      tipo: 'admin',
+      redirect: '/admin'
+    });
   }
-
-  // 👤 agente: Direciona para o painel do agente
+  // 👤 AGENTE
   db.get(
     "SELECT * FROM agentes WHERE token = ?",
     [token],
-    (err, row) => {
-      if (row) {
-        // Salvando dados na sessão para a API do Chatwoot
-        req.session.user = { 
-          tipo: 'agente', 
-          id: row.id, 
-          token: row.token, 
-          nome: row.nome 
-        };
-        // Retorna o caminho do painel do agente para o frontend[cite: 6]
-        return res.json({ tipo: 'agente', redirect: '/agente' }); 
-      } else {
-        return res.status(401).json({ erro: 'Token inválido' });
+    async (err, row) => {
+      if (!row) {
+        return res.status(401).json({
+          erro: 'Token inválido'
+        });
       }
+      // sessão
+      req.session.user = {
+        tipo: 'agente',
+        id: row.id,
+        token: row.token,
+        nome: row.nome
+      };
+      try {
+        // ONLINE CHATWOOT
+        await service.alterarStatusChatwoot(
+          row.token,
+          'online'
+        );
+        // REGISTRO BANCO
+        await service.registrarPausa(
+          row.id,
+          row.nome,
+          'Online'
+        );
+        console.log(
+          `[LOGIN] ${row.nome}`
+        );
+      } catch (e) {
+        console.error(
+          '[LOGIN]',
+          e
+        );
+      }
+      return res.json({
+        tipo: 'agente',
+        redirect: '/agente'
+      });
     }
   );
 });
-
 // 👤 QUEM ESTÁ LOGADO
 router.get('/me', (req, res) => {
   if (!req.session.user) {
-    return res.json({ logado: false });
+    return res.json({
+      logado: false
+    });
   }
-
-  res.json({
-    logado: true,
-    tipo: req.session.user.tipo,
-    nome: req.session.user.nome
+  const user = req.session.user;
+  db.get(`
+    SELECT
+      status,
+      data_hora
+    FROM controle_status
+    WHERE agente_id = ?
+    ORDER BY id DESC
+    LIMIT 1
+  `,
+  [user.id],
+  (err, row) => {
+    if (err) {
+      console.error('[ME]', err);
+      return res.status(500).json({
+        erro: 'Erro ao buscar status'
+      });
+    }
+    const status =
+      row?.status || 'Offline';
+    const statusData =
+      statusMap[status] || {
+        classe: 'offline'
+      };
+    res.json({
+      logado: true,
+      tipo: user.tipo,
+      nome: user.nome,
+      status,
+      data_hora:
+        row?.data_hora || null,
+      status_class:
+        statusData.classe,
+      timer:
+        statusData.timer || null
+    });
   });
 });
-
-// Atualização de status no Chatwoot
-router.post('/update-status', requireAuth, controller.updateStatus);
-
+// 🔄 Atualização de status
+router.post(
+  '/update-status',
+  requireAuth,
+  controller.updateStatus
+);
 // 🌐 público
 router.get('/fila', controller.listarFila);
-
 // 🔐 autenticado
-router.get('/proximo', requireAuth, controller.proximoAgente);
-
+router.get(
+  '/proximo',
+  requireAuth,
+  controller.proximoAgente
+);
 // 🔒 admin
-router.get('/admin/list', requireAdmin, controller.listar);
-router.post('/admin/add', requireAdmin, controller.add);
-router.post('/admin/toggle', requireAdmin, controller.toggle);
-router.post('/admin/reorder', requireAdmin, controller.reorder);
-
+router.get(
+  '/admin/list',
+  requireAdmin,
+  controller.listar
+);
+router.post(
+  '/admin/add',
+  requireAdmin,
+  controller.add
+);
+router.post(
+  '/admin/toggle',
+  requireAdmin,
+  controller.toggle
+);
+router.post(
+  '/admin/reorder',
+  requireAdmin,
+  controller.reorder
+);
 module.exports = router;

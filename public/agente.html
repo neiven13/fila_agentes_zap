@@ -16,83 +16,102 @@
             --accent: #6c63ff;
             --danger: #ff5f5f;
             --radius: 24px;
-            
-            /* Cores de Status */
             --status-online: #2ecc71;
             --status-busy: #f1c40f;
             --status-offline: #e74c3c;
         }
-
-        body { 
-            font-family: 'Poppins', sans-serif; 
-            background: linear-gradient(135deg, var(--grad-inicio) 0%, var(--grad-fim) 100%);
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background:
+                linear-gradient(
+                    135deg,
+                    var(--grad-inicio) 0%,
+                    var(--grad-fim) 100%
+                );
             background-attachment: fixed;
             color: var(--text-main);
             margin: 0;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            min-height: 100vh;
+            padding: 20px;
         }
-
         .card {
             background: var(--card-bg);
             padding: 3.5rem 2.5rem;
             border-radius: var(--radius);
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            box-shadow:
+                0 20px 50px rgba(0, 0, 0, 0.5);
             width: 100%;
-            max-width: 350px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
+            max-width: 380px;
+            border:
+                1px solid rgba(255, 255, 255, 0.05);
             text-align: center;
-            position: relative; /* Necessário para o círculo de status */
-        }
-
-        .card {
+            position: relative;
             -webkit-backdrop-filter: blur(5px);
             backdrop-filter: blur(50px);
         }
-
-        /* --- INDICADOR DE STATUS (MARCAÇÃO VERMELHA) --- */
+        /* ========================= */
+        /* STATUS */
+        /* ========================= */
         .status-indicator-container {
             position: absolute;
             top: 25px;
             right: 25px;
         }
-
         .status-dot {
             width: 15px;
             height: 15px;
             border-radius: 50%;
             background-color: var(--status-offline);
             transition: all 0.4s ease;
-            box-shadow: 0 0 20px rgba(231, 76, 60, 0.2);
+            box-shadow:
+                0 0 20px rgba(231, 76, 60, 0.2);
         }
-
-        /* Estados do Brilho */
         .status-dot.online {
             background-color: var(--status-online);
-            box-shadow: 0 0 25px var(--status-online), 0 0 25px rgba(46, 204, 113, 0.4);
+            box-shadow:
+                0 0 25px var(--status-online),
+                0 0 25px rgba(46, 204, 113, 0.4);
         }
-
         .status-dot.busy {
             background-color: var(--status-busy);
-            box-shadow: 0 0 25px var(--status-busy), 0 0 25px rgba(241, 196, 15, 0.4);
+            box-shadow:
+                0 0 25px var(--status-busy),
+                0 0 25px rgba(241, 196, 15, 0.4);
         }
-
         .status-dot.offline {
             background-color: var(--status-offline);
-            box-shadow: 0 0 25px var(--status-offline), 0 0 25px rgba(231, 76, 60, 0.4);
+            box-shadow:
+                0 0 25px var(--status-offline),
+                0 0 25px rgba(231, 76, 60, 0.4);
         }
-
-        /* --- ELEMENTOS DO CARD --- */
-        h2 { margin: 0 0 0.5rem; font-weight: 600; font-size: 1.5rem; }
-        p { color: var(--text-dim); font-size: 0.9rem; margin-bottom: 2rem; }
-
+        /* ========================= */
+        /* TEXTO */
+        /* ========================= */
+        h2 {
+            margin: 0 0 0.5rem;
+            font-weight: 600;
+            font-size: 1.5rem;
+        }
+        p {
+            color: var(--text-dim);
+            font-size: 0.9rem;
+            margin-bottom: 2rem;
+        }
+        /* ========================= */
+        /* SELECT */
+        /* ========================= */
         select {
             width: 100%;
             padding: 14px;
             border-radius: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border:
+                1px solid rgba(255, 255, 255, 0.1);
             background: var(--input-bg);
             color: white;
             font-family: inherit;
@@ -101,21 +120,54 @@
             cursor: pointer;
             transition: 0.3s;
             appearance: none;
-            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-image:
+                url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
             background-repeat: no-repeat;
             background-position: right 14px center;
             background-size: 16px;
         }
-
-        select:focus { border-color: var(--accent); }
-
+        select:focus {
+            border-color: var(--accent);
+        }
+        /* ========================= */
+        /* TIMER */
+        /* ========================= */
+        .timer-box {
+            margin-top: 20px;
+            padding: 16px;
+            border-radius: 16px;
+            background:
+                rgba(255, 255, 255, 0.04);
+            border:
+                1px solid rgba(255, 255, 255, 0.06);
+            display: none;
+        }
+        .timer-label {
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            margin-bottom: 8px;
+        }
+        .timer {
+            font-size: 2rem;
+            font-weight: 600;
+            letter-spacing: 2px;
+        }
+        .timer.warning {
+            color: #f1c40f;
+        }
+        .timer.danger {
+            color: #ff5f5f;
+        }
+        /* ========================= */
+        /* MSG */
+        /* ========================= */
         .status-msg {
             margin-top: 20px;
             font-size: 0.85rem;
             min-height: 1.2rem;
             font-weight: 500;
+            line-height: 1.6;
         }
-
         .logout-link {
             display: inline-block;
             margin-top: 30px;
@@ -126,88 +178,244 @@
             opacity: 0.8;
             transition: 0.3s;
         }
-
-        .logout-link:hover { opacity: 1; text-decoration: underline; }
+        .logout-link:hover {
+            opacity: 1;
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
-
     <div class="card">
         <div class="status-indicator-container">
             <div id="statusCircle" class="status-dot"></div>
         </div>
-
         <h2 id="saudacao">Olá!</h2>
-        <p>Defina seu status de disponibilidade</p>
-        
+        <p>
+            Defina seu status de disponibilidade
+        </p>
         <select id="statusSelect" onchange="mudarStatus(this.value)">
-            <option value="">Selecione um status...</option>
-            <option value="Online">🟢 Online</option>
-            <option value="Banheiro">🚽 Banheiro</option>
-            <option value="Almoço">🍽️ Almoço</option>
-            <option value="Treinamento">📚 Treinamento</option>
-            <option value="Prova">🧾 Prova</option>
-            <option value="Pausa - Suporte">🎧 Pausa - Suporte</option>
+            <option value="">
+                Selecione um status...
+            </option>
+            <option value="Online">
+                🟢 Online
+            </option>
+            <option value="Banheiro">
+                🚽 Banheiro
+            </option>
+            <option value="Lanche">
+                ☕ Lanche
+            </option>
+            <option value="Almoço">
+                🍽️ Almoço
+            </option>
+            <option value="Treinamento">
+                📚 Treinamento
+            </option>
+            <option value="Prova">
+                🧾 Prova
+            </option>
+            <option value="Pausa - Suporte">
+                🎧 Pausa - Suporte
+            </option>
         </select>
-
+        <!-- TIMER -->
+        <div id="timerBox" class="timer-box">
+            <div class="timer-label">
+                Tempo restante
+            </div>
+            <div id="timer" class="timer">
+                00:00
+            </div>
+        </div>
         <div id="msg" class="status-msg"></div>
-        
-        <a href="/logout" class="logout-link">Encerrar Sessão</a>
+        <a href="/logout" class="logout-link">
+            Encerrar Sessão
+        </a>
     </div>
-
     <script>
-        // Função para carregar o nome dinâmico
+        let timerInterval = null;
+        const TEMPOS = {
+            'Almoço': 72 * 60,
+            'Lanche': 15 * 60
+        };
+        // =========================
+        // TIMER
+        // =========================
+        function iniciarTimer(status, dataHora) {
+            clearInterval(timerInterval);
+            const timerBox =
+                document.getElementById('timerBox');
+            const timerEl =
+                document.getElementById('timer');
+            if (!TEMPOS[status]) {
+                timerBox.style.display = 'none';
+                return;
+            }
+            timerBox.style.display = 'block';
+            const limiteSegundos =
+                TEMPOS[status];
+            const inicio =
+                new Date(
+                    dataHora.replace(' ', 'T')
+                ).getTime();
+            function atualizar() {
+                const agora =
+                    Date.now();
+                const decorrido =
+                    Math.floor(
+                        (agora - inicio) / 1000
+                    );
+                let restante =
+                    limiteSegundos - decorrido;
+                if (restante < 0) {
+                    restante = 0;
+                }
+                const minutos =
+                    Math.floor(restante / 60)
+                        .toString()
+                        .padStart(2, '0');
+                const segundos =
+                    (restante % 60)
+                        .toString()
+                        .padStart(2, '0');
+                timerEl.innerText =
+                    `${minutos}:${segundos}`;
+                timerEl.className = 'timer';
+                if (restante <= 300) {
+                    timerEl.classList.add('danger');
+                } else if (restante <= 900) {
+                    timerEl.classList.add('warning');
+                }
+            }
+            atualizar();
+            timerInterval =
+                setInterval(atualizar, 1000);
+        }
+        // =========================
+        // PERFIL
+        // =========================
         async function carregarPerfil() {
             try {
-                const response = await fetch('/agents/me'); 
-                const data = await response.json();
+                const response =
+                    await fetch('/agents/me');
+                const data =
+                    await response.json();
+                console.log(data);
+                // saudação
                 if (data.nome) {
-                    document.getElementById('saudacao').innerText = `Olá, ${data.nome}!`;
+                    document.getElementById(
+                        'saudacao'
+                    ).innerText =
+                        `Olá, ${data.nome}!`;
+                }
+                // círculo
+                const statusCircle =
+                    document.getElementById(
+                        'statusCircle'
+                    );
+                statusCircle.className =
+                    'status-dot';
+                if (data.status_class) {
+                    statusCircle.classList.add(
+                        data.status_class
+                    );
+                }
+                // select
+                const select =
+                    document.getElementById(
+                        'statusSelect'
+                    );
+                if (data.status) {
+                    select.value =
+                        data.status;
+                }
+                // mensagem
+                const msgDiv =
+                    document.getElementById('msg');
+                if (data.status) {
+                    let dataFormatada = '';
+                    if (data.data_hora) {
+                        const dt =
+                            new Date(
+                                data.data_hora.replace(' ', 'T')
+                            );
+                        dataFormatada =
+                            dt.toLocaleString('pt-BR');
+                    }
+                    msgDiv.innerHTML = `
+                        Status atual:
+                        <b>${data.status}</b>
+                        <br>
+                        <small>${dataFormatada}</small>
+                    `;
+                }
+                // TIMER
+                if (
+                    data.status &&
+                    data.data_hora
+                ) {
+                    iniciarTimer(
+                        data.status,
+                        data.data_hora
+                    );
                 }
             } catch (err) {
-                console.error("Erro ao carregar perfil:", err);
+                console.error(
+                    'Erro ao carregar perfil:',
+                    err
+                );
             }
         }
-
+        // =========================
+        // ALTERAR STATUS
+        // =========================
         async function mudarStatus(statusPainel) {
             if (!statusPainel) return;
-
-            const msgDiv = document.getElementById('msg');
-            const statusCircle = document.getElementById('statusCircle');
-            
-            // Atualiza o círculo brilhante antes do fetch para resposta instantânea
-            statusCircle.className = 'status-dot'; // Reseta
-            if (statusPainel === 'Online') {
-                statusCircle.classList.add('online');
-            } else {
-                statusCircle.classList.add('busy');
-            }
-
-            msgDiv.style.color = "var(--text-dim)";
-            msgDiv.innerText = "⏳ Atualizando no Chatwoot...";
-            
+            const msgDiv =
+                document.getElementById('msg');
+            msgDiv.style.color =
+                "var(--text-dim)";
+            msgDiv.innerText =
+                "⏳ Atualizando status...";
             try {
-                const response = await fetch('/agents/update-status', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ statusPainel })
-                });
-                
-                if (response.ok) {
-                    msgDiv.style.color = "#4caf50";
-                    msgDiv.innerText = `✅ Status: ${statusPainel} definido!`;
-                } else {
-                    const errorData = await response.json();
-                    throw new Error(errorData.erro || "Erro na resposta");
+                const response =
+                    await fetch(
+                        '/agents/update-status',
+                        {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type':
+                                    'application/json'
+                            },
+                            body: JSON.stringify({
+                                statusPainel
+                            })
+                        }
+                    );
+                const data =
+                    await response.json();
+                if (!response.ok) {
+                    throw new Error(
+                        data.erro || 'Erro'
+                    );
                 }
+                msgDiv.style.color =
+                    "#4caf50";
+                msgDiv.innerText =
+                    "✅ Status atualizado!";
+                setTimeout(() => {
+                    location.reload();
+                }, 700);
             } catch (err) {
-                statusCircle.className = 'status-dot offline'; // Indica erro no brilho
-                msgDiv.style.color = "var(--danger)";
-                msgDiv.innerText = "❌ Erro ao atualizar status.";
+                console.error(err);
+                msgDiv.style.color =
+                    "var(--danger)";
+                msgDiv.innerText =
+                    "❌ Erro ao atualizar status.";
             }
         }
-
-        // Inicia a página buscando o nome do agente
+        // =========================
         carregarPerfil();
     </script>
 </body>

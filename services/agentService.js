@@ -186,11 +186,14 @@ async function registrarPausa(
         reject(err);
 
       } else {
+<<<<<<< HEAD
 
         console.log(
           `[STATUS] ${agente_nome} -> ${status}`
         );
 
+=======
+>>>>>>> d44ba0a2731b7f0bc046ce31cb2e0f5cfa028ac8
         resolve(true);
 
       }

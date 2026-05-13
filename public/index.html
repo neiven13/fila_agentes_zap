@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="pt-br">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -18,12 +17,15 @@
             --online: #4caf50;
             --busy: #f39c12;
             --offline: #ff5f5f;
+            --bathroom: #562980;
             --radius: 24px;
         }
-
         body {
             font-family: 'Poppins', sans-serif;
-            background: linear-gradient(135deg, var(--grad-inicio) 0%, var(--grad-fim) 100%);
+            background:
+                linear-gradient(135deg,
+                    var(--grad-inicio) 0%,
+                    var(--grad-fim) 100%);
             background-attachment: fixed;
             color: var(--text-main);
             margin: 0;
@@ -33,24 +35,19 @@
             align-items: center;
             min-height: 100vh;
         }
-
-        /* Container expandido para ocupação horizontal na TV */
         .container {
             background: var(--card-bg);
             padding: 2rem;
             border-radius: var(--radius);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            box-shadow:
+                0 10px 30px rgba(0, 0, 0, 0.3);
             width: 95%;
-            /* Ocupa quase toda a largura */
             max-width: 1600px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-        }
-
-        .container {
+            border:
+                1px solid rgba(255, 255, 255, 0.05);
             -webkit-backdrop-filter: blur(5px);
             backdrop-filter: blur(50px);
         }
-
         h2 {
             text-align: center;
             margin-bottom: 2rem;
@@ -58,7 +55,6 @@
             font-size: 1.8rem;
             letter-spacing: 1px;
         }
-
         .topo {
             display: flex;
             justify-content: flex-end;
@@ -67,7 +63,6 @@
             gap: 10px;
             margin-bottom: 20px;
         }
-
         button {
             background: #2a2e37;
             color: var(--text-main);
@@ -78,47 +73,60 @@
             transition: 0.3s;
             font-family: inherit;
         }
-
         button:hover {
             background: #3f4451;
         }
-
-        /* --- AJUSTE PARA GRID DE 5 COLUNAS --- */
         .agent-list {
             display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            /* 5 colunas iguais */
+            grid-template-columns:
+                repeat(5, 1fr);
             gap: 15px;
         }
-
         .agent-card {
             background: var(--item-bg);
             border-radius: 16px;
             padding: 20px;
             display: flex;
             flex-direction: column;
-            /* Conteúdo empilhado no card */
             align-items: center;
             justify-content: center;
-            border: 1px solid rgba(255, 255, 255, 0.03);
+            border:
+                1px solid rgba(255, 255, 255, 0.03);
             transition: all 0.3s ease;
             position: relative;
             text-align: center;
+            min-height: 140px;
         }
-
         .agent-card.active {
             border-color: var(--online);
-            box-shadow: 0 0 15px rgba(76, 175, 80, 0.2);
+            box-shadow:
+                0 0 15px rgba(76, 175, 80, 0.2);
             transform: scale(1.02);
         }
-
+        .agent-card.pausa {
+            border: 2px solid #f1c40f;
+            background: rgba(241, 196, 15, 0.15);
+            box-shadow:
+                0 0 25px rgba(241, 196, 15, 0.35);
+        }
+        .agent-card.atrasado {
+            border: 2px solid #e74c3c;
+            background: rgba(231, 76, 60, 0.15);
+            box-shadow:
+                0 0 25px rgba(231, 76, 60, 0.35);
+        }
+        .agent-card.bathroom {
+            border: 2px solid var(--bathroom);
+            background: rgba(168, 85, 247, 0.15);;
+            box-shadow:
+                0 0 25px rgba(168, 85, 247, 0.35);
+        }
         .agent-info {
             display: flex;
             flex-direction: column;
             align-items: center;
             gap: 10px;
         }
-
         .nome {
             font-weight: 500;
             font-size: 1.1rem;
@@ -127,7 +135,6 @@
             text-overflow: ellipsis;
             max-width: 100%;
         }
-
         .conversas {
             color: var(--text-dim);
             font-size: 0.85rem;
@@ -135,8 +142,6 @@
             align-items: center;
             gap: 5px;
         }
-
-        /* Status no canto superior do card */
         .status-dot {
             position: absolute;
             top: 15px;
@@ -145,100 +150,274 @@
             height: 12px;
             border-radius: 50%;
         }
-
         .status-dot.online {
             background: var(--online);
-            box-shadow: 0 0 10px var(--online);
+            box-shadow:
+                0 0 10px var(--online);
         }
-
         .status-dot.busy {
             background: var(--busy);
-            box-shadow: 0 0 10px var(--busy);
+            box-shadow:
+                0 0 10px var(--busy);
         }
-
         .status-dot.offline {
             background: var(--offline);
-            box-shadow: 0 0 10px var(--offline);
+            box-shadow:
+                0 0 10px var(--offline);
         }
-
-        /* Ajuste para telas menores (Responsividade) */
+        .status-dot.hidden {
+            display: none;
+        }
+        .timer-box {
+            margin-top: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+        .timer-label {
+            font-size: 0.75rem;
+            color: #f39c12;
+            font-weight: 600;
+        }
+        .timer-count {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #ffffff;
+            letter-spacing: 1px;
+        }
         @media (max-width: 1200px) {
             .agent-list {
-                grid-template-columns: repeat(3, 1fr);
+                grid-template-columns:
+                    repeat(3, 1fr);
             }
         }
-
         @media (max-width: 800px) {
             .agent-list {
-                grid-template-columns: repeat(2, 1fr);
+                grid-template-columns:
+                    repeat(2, 1fr);
             }
         }
     </style>
 </head>
-
 <body>
-
     <div class="topo">
-        <button id="btnLogin" onclick="login()">Login</button>
-        <button id="btnAdmin" onclick="admin()" style="display:none;">Painel Admin</button>
-        <button id="btnLogout" onclick="logout()" style="display:none;">Sair</button>
+        <button id="btnLogin" onclick="login()">
+            Login
+        </button>
+        <button id="btnAdmin" onclick="admin()" style="display:none;">
+            Painel Admin
+        </button>
+        <button id="btnLogout" onclick="logout()" style="display:none;">
+            Sair
+        </button>
     </div>
-
     <div class="container">
-        <h2>Agentes - Suporte</h2>
+        <h2>
+            Agentes - Suporte
+        </h2>
         <div id="lista" class="agent-list">
         </div>
     </div>
-
     <script>
+        function iniciarTimer(
+            elementId,
+            dataHora,
+            limiteMinutos,
+            cardId
+        ) {
+            const elemento =
+                document.getElementById(elementId);
+            const card =
+                document.getElementById(cardId);
+            if (!elemento || !card) return;
+            function atualizar() {
+                const inicio =
+                    new Date(
+                        dataHora.replace(' ', 'T')
+                    );
+                const agora =
+                    new Date();
+                const diffMs =
+                    agora - inicio;
+                const minutos =
+                    Math.floor(diffMs / 60000);
+                const segundos =
+                    Math.floor(
+                        (diffMs % 60000) / 1000
+                    );
+                const restante =
+                    limiteMinutos - minutos;
+                // RESET
+                card.classList.remove(
+                    'pausa',
+                    'atrasado'
+                );
+                // DENTRO DO TEMPO
+                if (restante >= 0) {
+                    card.classList.add('pausa');
+                    const mins =
+                        String(restante)
+                            .padStart(2, '0');
+                    const secs =
+                        String(59 - segundos)
+                            .padStart(2, '0');
+                    elemento.innerHTML =
+                        `⏱️ ${mins}:${secs}`;
+                }
+                // ATRASADO
+                else {
+                    card.classList.add('atrasado');
+                    const atraso =
+                        Math.abs(restante);
+                    const mins =
+                        String(atraso)
+                            .padStart(2, '0');
+                    const secs =
+                        String(segundos)
+                            .padStart(2, '0');
+                    elemento.innerHTML =
+                        `⚠️ -${mins}:${secs}`;
+                }
+            }
+            atualizar();
+            setInterval(atualizar, 1000);
+        }
         async function verificar() {
             try {
-                const res = await fetch('/agents/me', { credentials: 'include' });
-                const data = await res.json();
+                const res =
+                    await fetch(
+                        '/agents/me',
+                        {
+                            credentials: 'include'
+                        }
+                    );
+                const data =
+                    await res.json();
                 if (data.logado) {
-                    document.getElementById('btnLogin').style.display = 'none';
-                    document.getElementById('btnLogout').style.display = 'inline';
-                    if (data.tipo === 'admin') document.getElementById('btnAdmin').style.display = 'inline';
+                    document.getElementById(
+                        'btnLogin'
+                    ).style.display = 'none';
+                    document.getElementById(
+                        'btnLogout'
+                    ).style.display = 'inline';
+                    if (data.tipo === 'admin') {
+                        document.getElementById(
+                            'btnAdmin'
+                        ).style.display = 'inline';
+                    }
                 }
-            } catch (err) { console.error(err); }
+            } catch (err) {
+                console.error(err);
+            }
         }
-
         async function carregar() {
             try {
-                const res = await fetch('/agents/fila', { credentials: 'include' });
-                const data = await res.json();
-                const lista = document.getElementById('lista');
+                const res =
+                    await fetch(
+                        '/agents/fila',
+                        {
+                            credentials: 'include'
+                        }
+                    );
+                const data =
+                    await res.json();
+                const lista =
+                    document.getElementById('lista');
                 lista.innerHTML = '';
-
-                data.forEach((a, index) => {
-                    const card = document.createElement('div');
-                    const isAtivo = a.ultimoChamado ? 'active' : '';
-                    card.className = `agent-card ${isAtivo}`;
-
+                data.forEach(a => {
+                    const card =
+                        document.createElement('div');
+                    const isAtivo =
+                        a.ultimoChamado
+                            ? 'active'
+                            : '';
+                    card.className =
+                        `agent-card ${isAtivo}`;
+                    if (a.status_class === 'bathroom') {
+                        card.classList.add('bathroom');
+                    }
+                    card.id =
+                        `card-${a.id}`;
+                    // ESCONDE BOLINHA DURANTE PAUSA
+                    const hideDot =
+                        a.timer ? 'hidden' : '';
                     card.innerHTML = `
-                <div class="status-dot ${a.status}"></div>
-                <div class="agent-info">
-                    <span class="nome">${a.nome}</span>
-                    <span class="conversas">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-                        ${a.conversas} conversas
-                    </span>
-                </div>
-            `;
+                        <div class="
+                            status-dot
+                            ${a.status_class}
+                            ${hideDot}
+                        "></div>
+                        <div class="agent-info">
+                            <span class="nome">
+                                ${a.nome}
+                            </span>
+                            <span class="conversas">
+                                <svg
+                                    width="14"
+                                    height="14"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                >
+                                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                                </svg>
+                                ${a.conversas} conversas
+                            </span>
+                            ${a.timer && a.data_hora
+                            ? `
+                                    <div class="timer-box">
+                                        <div class="timer-label">
+                                            ${a.status}
+                                        </div>
+                                        <div
+                                            class="timer-count"
+                                            id="timer-${a.id}"
+                                        >
+                                            --:--
+                                        </div>
+                                    </div>
+                                `
+                            : ''
+                        }
+                        </div>
+                    `;
                     lista.appendChild(card);
+                    // TIMER
+                    if (
+                        a.timer &&
+                        a.data_hora
+                    ) {
+                        iniciarTimer(
+                            `timer-${a.id}`,
+                            a.data_hora,
+                            a.timer,
+                            `card-${a.id}`
+                        );
+                    }
                 });
-            } catch (err) { console.error(err); }
+            } catch (err) {
+                console.error(err);
+            }
         }
-
-        function login() { window.location = '/login'; }
-        function admin() { window.location = '/admin'; }
-        function logout() { window.location = '/logout'; }
-
+        function login() {
+            window.location = '/login';
+        }
+        function admin() {
+            window.location = '/admin';
+        }
+        function logout() {
+            window.location = '/logout';
+        }
         verificar();
         carregar();
-        setInterval(carregar, 3000);
+        setInterval(
+            carregar,
+            3000
+        );
     </script>
-
 </body>
-
 </html>

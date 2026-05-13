@@ -46,46 +46,49 @@ function getAgentesDB() {
 }
 
 async function montarFila() {
-  const agora = Date.now();
-
-  // ⚡ Se usar cache, atualizamos a flag 'ultimoChamado' antes de retornar
-  if (agora - ultimaAtualizacao < CACHE_TTL && cacheFila.length > 0) {
-    return cacheFila.map(agente => ({
-      ...agente,
-      ultimoChamado: agente.id === ultimoIdChamado
-    }));
-  }
-
-  const agentes = await getAgentesDB();
-  const statusApi = await getStatusAgentes();
-
-  if (!statusApi) {
-    return cacheFila.map(agente => ({
-      ...agente,
-      ultimoChamado: agente.id === ultimoIdChamado
-    }));
-  }
-
-  const resultado = await Promise.all(
-    agentes.map(async (agente) => {
-      const status = statusApi.find(s => s.id === agente.id);
-      const conversas = await getConversasAgente(agente.token);
-
-      return {
-        id: agente.id,
-        nome: agente.nome,
-        status: status?.availability_status || 'offline',
-        conversas,
-        ultimoChamado: agente.id === ultimoIdChamado
-      };
-    })
-  );
-
-  cacheFila = resultado;
-  ultimaAtualizacao = agora;
-
-  return resultado;
+  return new Promise((resolve, reject) => {
+    db.all(`
+      SELECT
+        a.id,
+        a.nome,
+        a.ordem,
+        cs.status,
+        cs.data_hora
+      FROM agentes a
+      LEFT JOIN controle_status cs
+        ON cs.id = (
+          SELECT id
+          FROM controle_status
+          WHERE agente_id = a.id
+          ORDER BY id DESC
+          LIMIT 1
+        )
+      WHERE a.ativo = 1
+      ORDER BY a.ordem ASC
+    `,
+    [],
+    (err, rows) => {
+      if (err) {
+        return reject(err);
+      }
+      const fila = rows.map(row => {
+        const statusData =
+          statusMap[row.status] || {
+            classe: 'offline'
+          };
+        return {
+          ...row,
+          status_class:
+            statusData.classe,
+          timer:
+            statusData.timer || null
+        };
+      });
+      resolve(fila);
+    });
+  });
 }
+
 
 function getUltimoIndex() {
   return new Promise((resolve) => {

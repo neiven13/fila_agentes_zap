@@ -1,6 +1,6 @@
 {
   "name": "fila_agentes",
-  "version": "1.1.0",
+  "version": "1.1.2",
   "description": "Sistema de Fila de Agentes",
   "main": "server.js",
   "bin": "server.js",
@@ -22,7 +22,8 @@
     "assets": [
       "public/**/*",
       "routes/**/*",
-      "controllers/**/*"
+      "controllers/**/*",
+      "node_modules/sqlite3/build/Release/*.node"
     ]
   },
   "devDependencies": {

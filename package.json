@@ -1,6 +1,6 @@
 {
   "name": "fila_agentes",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Sistema de Fila de Agentes",
   "main": "server.js",
   "bin": "server.js",

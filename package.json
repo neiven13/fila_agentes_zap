@@ -22,7 +22,8 @@
     "assets": [
       "public/**/*",
       "routes/**/*",
-      "controllers/**/*"
+      "controllers/**/*",
+      "node_modules/sqlite3/build/Release/*.node"
     ]
   },
   "devDependencies": {

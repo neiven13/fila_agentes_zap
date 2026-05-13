@@ -5,12 +5,10 @@ on:
     tags:
       - 'v*'
 
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-
 jobs:
   build-windows:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
+
     permissions:
       contents: write
 
@@ -27,24 +25,31 @@ jobs:
       - name: Instalar dependências
         run: npm install
 
-      - name: Gerar Executável (Build)
+      - name: Rebuild sqlite3
+        run: npm rebuild sqlite3
+
+      - name: Gerar Executável
         run: npm run build
 
-      - name: Organizar Arquivos da Release
+      - name: Organizar arquivos
+        shell: powershell
         run: |
-          mkdir -p release_zip/database
-          mkdir -p release_zip/node_modules/sqlite3
-          cp dist/fila-agentes.exe release_zip/
-          cp config.json release_zip/ || true
-          cp database/db.sqlite release_zip/database/ || touch release_zip/database/db.sqlite
-          cp -r node_modules/sqlite3/* release_zip/node_modules/sqlite3/
-          zip -r fila-agentes-completo.zip release_zip/*
+          New-Item -ItemType Directory -Force release_zip/database
+          Copy-Item dist/fila-agentes.exe release_zip/
+          
+          if (Test-Path config.json) {
+            Copy-Item config.json release_zip/
+          }
 
-      - name: Criar Release e Upload do Pack
+          if (Test-Path database/db.sqlite) {
+            Copy-Item database/db.sqlite release_zip/database/
+          }
+
+          Compress-Archive -Path release_zip/* -DestinationPath fila-agentes-completo.zip
+
+      - name: Criar Release
         uses: softprops/action-gh-release@v2
         with:
           files: fila-agentes-completo.zip
           name: Fila de Agentes ${{ github.ref_name }}
-          body: "Release automática. Extraia o ZIP e execute o fila-agentes.exe."
-          draft: false
-          prerelease: false
+          body: Release automática

@@ -153,9 +153,51 @@ async function alterarStatusChatwoot(token, availability) {
     return false;
   }
 }
+async function registrarPausa(
+  agente_id,
+  agente_nome,
+  status
+) {
+
+  return new Promise((resolve, reject) => {
+
+    db.run(`
+      INSERT INTO controle_status (
+        agente_id,
+        agente_nome,
+        status
+      )
+      VALUES (?, ?, ?)
+    `,
+    [
+      agente_id,
+      agente_nome,
+      status
+    ],
+    (err) => {
+
+      if (err) {
+
+        console.error(
+          '[registrarPausa]',
+          err
+        );
+
+        reject(err);
+
+      } else {
+        resolve(true);
+
+      }
+
+    });
+
+  });
+
+}
 
 module.exports = {
   montarFila,
   escolherProximo,
-  alterarStatusChatwoot
+  alterarStatusChatwoot,registrarPausa
 };

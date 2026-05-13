@@ -186,7 +186,6 @@ async function registrarPausa(
         reject(err);
 
       } else {
- d44ba0a2731b7f0bc046ce31cb2e0f5cfa028ac8
         resolve(true);
 
       }

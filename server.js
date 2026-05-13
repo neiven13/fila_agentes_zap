@@ -1,27 +1,22 @@
+const chalk = require('chalk');
+const packageJson = require('./package.json');
 const express = require('express');
 const path = require('path');
 const fs = require('fs');
 const os = require('os'); 
 const session = require('express-session');
-
 const baseDir = process.pkg ? path.dirname(process.execPath) : __dirname;
-
 const agentRoutes = require('./routes/agentRoutes');
-
 const app = express();
-
 const configPath = path.join(baseDir, 'config.json');
 let config;
-
 try {
   config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
 } catch (err) {
   console.error('ERRO: Não foi possível encontrar o arquivo config.json em: ' + configPath);
   config = { porta: 3000 };
 }
-
 app.use(express.json());
-
 // 🔐 Configuração de sessão
 app.use(session({
   name: 'fila.sid',
@@ -34,10 +29,8 @@ app.use(session({
     sameSite: 'lax'
   }
 }));
-
 // 🔌 API
 app.use('/agents', agentRoutes);
-
 // 🔐 Middleware de proteção
 function requireAuth(tipo) {
   return (req, res, next) => {
@@ -50,9 +43,7 @@ function requireAuth(tipo) {
     next();
   };
 }
-
 // --- ROTAS DE PÁGINAS ---
-
 // HOME (🏠 Agora com redirecionamento automático por tipo)
 app.get('/', (req, res) => {
   if (req.session.user) {
@@ -66,7 +57,6 @@ app.get('/', (req, res) => {
   // Se não estiver logado, mostra a fila pública normal
   res.sendFile(path.join(__dirname, 'public/index.html'));
 });
-
 // LOGIN
 app.get('/login', (req, res) => {
   if (req.session.user) {
@@ -74,27 +64,22 @@ app.get('/login', (req, res) => {
   }
   res.sendFile(path.join(__dirname, 'public/login.html'));
 });
-
 // ADMIN
 app.get('/admin', requireAuth('admin'), (req, res) => {
   res.sendFile(path.join(__dirname, 'public/admin.html'));
 });
-
 // PAINEL DO AGENTE (🚀 Nova rota para o painel específico)
 app.get('/agente', requireAuth('agente'), (req, res) => {
   res.sendFile(path.join(__dirname, 'public/agente.html'));
 });
-
 // FILA
 app.get('/fila', requireAuth(), (req, res) => {
   res.sendFile(path.join(__dirname, 'public/fila.html'));
 });
-
 // NOVO AGENTE
 app.get('/novo', requireAuth('admin'), (req, res) => {
   res.sendFile(path.join(__dirname, 'public/novo.html'));
 });
-
 // LOGOUT
 app.get('/logout', async (req, res) => {
   if (req.session.user && req.session.user.tipo === 'agente') {
@@ -106,15 +91,12 @@ app.get('/logout', async (req, res) => {
       console.error("Erro ao deslogar status:", e);
     }
   }
-  
   req.session.destroy(() => {
     res.clearCookie('fila.sid');
     res.redirect('/');
   });
 });
-
 app.use(express.static(path.join(__dirname, 'public')));
-
 // 🌐 Função para pegar o IP local
 function getLocalIpAddress() {
   const interfaces = os.networkInterfaces();
@@ -127,12 +109,32 @@ function getLocalIpAddress() {
   }
   return 'localhost';
 }
-
 console.log('Iniciando servidor...');
-
+console.log(chalk.green(`\nBem vindo ao controle de fila de agentes!       v${packageJson.version}`));
+    console.log("::::::::::::::::::::::::::::::::::::::::::::::::::::::");
+    console.log("                      *                               ");
+    console.log('       *                                    *         ');
+    console.log("                 ░░░░░                             *  ");
+    console.log("         ░░░░   ░░░░░░░░░                             ");
+    console.log("        ░░░░░░░░░░░░░░░░░░░░░░          *             ");
+    console.log("   *                                                  ");
+    console.log("                                                      ");
+    console.log("    █████ ██  ██ █████   ████  █████  ██████ ██████   ");
+    console.log("   ██     ██  ██ ██  ██ ██  ██ ██  ██   ██   ██       ");
+    console.log("   ██████ ██  ██ █████  ██  ██ █████    ██   █████    ");
+    console.log("       ██ ██  ██ ██     ██  ██ ██  ██   ██   ██       ");
+    console.log("   █████   ████  ██      ████  ██   ██  ██   ██████   ");
+    console.log("                                                      ");
+    console.log("                 ██████  ████  █████        *         ");
+    console.log("      *              █  ██  ██ ██  ██                 ");
+    console.log("                   ██   ██████ █████                  ");
+    console.log("   *       *      █     ██  ██ ██       *        ░░░  ");
+    console.log("                 ██████ ██  ██ ██           ░░░░░░░░  ");
+    console.log("                                      ░░░░░░░░░░░░░░░░");
+    console.log("         *                                            ");
+    console.log(":::::::::::::::::::::::::::::::::::::::::::::::::::::\n");
 app.listen(config.porta, () => {
   const ip = getLocalIpAddress();
-  
   console.log('-----------------------------------------');
   console.log('Servidor rodando!');
   console.log(`Acesso na rede: http://${ip}:${config.porta}`);

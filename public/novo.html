@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="pt-br">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -18,7 +17,6 @@
       --accent-hover: #5a52d4;
       --radius: 20px;
     }
-
     body {
       font-family: 'Poppins', sans-serif;
       background: linear-gradient(135deg, var(--grad-inicio) 0%, var(--grad-fim) 100%);
@@ -31,7 +29,6 @@
       height: 100vh;
       padding: 20px;
     }
-
     .container {
       background: var(--card-bg);
       padding: 3rem;
@@ -42,24 +39,20 @@
       border: 1px solid rgba(255, 255, 255, 0.05);
       text-align: center;
     }
-
     .container {
       -webkit-backdrop-filter: blur(5px);
       backdrop-filter: blur(50px);
     }
-
     h2 {
       margin-bottom: 2rem;
       font-weight: 600;
       font-size: 1.5rem;
       color: var(--text-main);
     }
-
     .form-group {
       text-align: left;
       margin-bottom: 1.5rem;
     }
-
     label {
       display: block;
       margin-bottom: 8px;
@@ -67,7 +60,6 @@
       color: var(--text-dim);
       margin-left: 5px;
     }
-
     input {
       width: 100%;
       padding: 14px 18px;
@@ -81,20 +73,17 @@
       box-sizing: border-box;
       transition: 0.3s;
     }
-
     input:focus {
       border-color: var(--accent);
       background: #22252e;
       box-shadow: 0 0 10px rgba(108, 99, 255, 0.1);
     }
-
     .actions {
       display: flex;
       flex-direction: column;
       gap: 12px;
       margin-top: 2rem;
     }
-
     .btn {
       padding: 14px;
       border-radius: 12px;
@@ -105,33 +94,27 @@
       transition: 0.3s;
       width: 100%;
     }
-
     .btn-save {
       background: var(--accent);
       color: white;
     }
-
     .btn-save:hover {
       background: var(--accent-hover);
       transform: translateY(-2px);
       box-shadow: 0 5px 15px rgba(108, 99, 255, 0.3);
     }
-
     .btn-back {
       background: transparent;
       color: var(--text-dim);
       border: 1px solid rgba(255, 255, 255, 0.1);
     }
-
     .btn-back:hover {
       background: rgba(255, 255, 255, 0.05);
       color: var(--text-main);
     }
-
     input#id {
       letter-spacing: 1px;
     }
-
     input::-webkit-outer-spin-button,
     input::-webkit-inner-spin-button {
       -webkit-appearance: none;
@@ -139,46 +122,36 @@
     }
   </style>
 </head>
-
 <body>
-
   <div class="container">
     <h2>Novo Agente</h2>
-
     <div class="form-group">
       <label for="id">ID do Agente (Chatwoot)</label>
       <input type="number" id="id" placeholder="Ex: 121">
     </div>
-
     <div class="form-group">
       <label for="nome">Nome Completo</label>
       <input type="text" id="nome" placeholder="Nome do Agente">
     </div>
-
     <div class="form-group">
       <label for="tokenAgente">Token de Acesso</label>
       <input type="password" id="tokenAgente" placeholder="••••••••••••••••">
     </div>
-
     <div class="actions">
       <button class="btn btn-save" onclick="salvar()">Criar Agente</button>
       <button class="btn btn-back" onclick="voltar()">Cancelar e Voltar</button>
     </div>
   </div>
-
   <script>
     const token = localStorage.getItem('token');
-
     async function salvar() {
       const id = document.getElementById('id').value;
       const nome = document.getElementById('nome').value;
       const tokenAgente = document.getElementById('tokenAgente').value;
-
       if (!id || !nome || !tokenAgente) {
         alert("Por favor, preencha todos os campos.");
         return;
       }
-
       try {
         const response = await fetch('/agents/admin/add?token=' + token, {
           method: 'POST',
@@ -189,7 +162,6 @@
             token: tokenAgente
           })
         });
-
         if (response.ok) {
           window.location = '/admin';
         } else {
@@ -200,12 +172,9 @@
         alert("Erro de conexão.");
       }
     }
-
     function voltar() {
       window.location = '/admin';
     }
   </script>
-
 </body>
-
 </html>

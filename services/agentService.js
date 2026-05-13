@@ -186,11 +186,6 @@ async function registrarPausa(
         reject(err);
 
       } else {
-
-        console.log(
-          `[STATUS] ${agente_nome} -> ${status}`
-        );
-
         resolve(true);
 
       }

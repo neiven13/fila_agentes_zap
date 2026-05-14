@@ -2,34 +2,25 @@
   "name": "fila_agentes",
   "version": "1.1.5",
   "description": "Sistema de Fila de Agentes",
-  "main": "server.js",
-  "bin": "server.js",
+  "main": "electron/main.js",
   "scripts": {
     "start": "node server.js",
-    "build": "pkg . --targets node18-win-x64 --output dist/fila-agentes.exe",
-    "dev": "nodemon server.js"
+    "dev": "nodemon server.js",
+    "electron": "electron ."
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
+    "better-sqlite3": "^11.9.1",
+    "chalk": "^4.1.2",
     "express": "^5.2.1",
     "express-session": "^1.19.0",
-    "node-fetch": "^2.7.0",
-    "sqlite3": "^6.0.1",
-    "chalk": "^4.1.2"
-  },
-  "pkg": {
-    "assets": [
-      "public/**/*",
-      "routes/**/*",
-      "controllers/**/*",
-      "node_modules/sqlite3/build/Release/*.node"
-    ]
+    "node-fetch": "^2.7.0"
   },
   "devDependencies": {
-    "nodemon": "^3.1.14",
-    "pkg": "^5.8.1"
+    "electron": "^30.5.1",
+    "nodemon": "^3.1.14"
   }
 }

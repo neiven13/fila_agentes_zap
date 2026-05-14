@@ -1,15 +1,15 @@
 {
   "name": "fila_agentes",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Sistema de Fila de Agentes",
   "main": "electron/main.js",
   "type": "commonjs",
   "scripts": {
-  "dev": "electron .",
-  "start": "electron .",
-  "rebuild": "electron-rebuild -f -w better-sqlite3",
-  "dist": "electron-builder"
-},
+    "dev": "electron .",
+    "start": "electron .",
+    "rebuild": "electron-rebuild -f -w better-sqlite3",
+    "dist": "electron-builder"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
@@ -27,25 +27,25 @@
     "nodemon": "^3.1.14"
   },
   "build": {
-  "appId": "com.filaagentes.app",
-  "productName": "Fila Agentes",
-  "asar": true,
-  "asarUnpack": [
-    "**/node_modules/better-sqlite3/**/*"
-  ],
-  "directories": {
-    "output": "dist"
-  },
-  "files": [
-    "**/*"
-  ],
-  "win": {
-    "target": "nsis"
-  },
-  "publish": [
-    {
-      "provider": "github"
-    }
-  ]
-}
+    "appId": "com.filaagentes.app",
+    "productName": "Fila Agentes",
+    "asar": true,
+    "asarUnpack": [
+      "**/node_modules/better-sqlite3/**/*"
+    ],
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "**/*"
+    ],
+    "win": {
+      "target": "nsis"
+    },
+    "publish": [
+      {
+        "provider": "github"
+      }
+    ]
+  }
 }

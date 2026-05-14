@@ -1,31 +1,28 @@
 const fs = require('fs');
 const path = require('path');
-const configPath = path.join(
-  process.env.USERPROFILE,
-  'FilaAgentes',
-  'config.json'
-);
+const baseDir = path.join(process.env.USERPROFILE, 'FilaAgentes');
+const configPath = path.join(baseDir, 'config.json');
 const defaultConfig = {
   chatUrl: "https://sw-chat.elodatacenter.com.br",
   accountId: 1,
   porta: 3000,
   supervisorToken: "1"
 };
-function getConfig() {
-  try {
-    if (!fs.existsSync(configPath)) {
-      return defaultConfig;
-    }
-    const raw = fs.readFileSync(configPath, 'utf-8');
-    const parsed = JSON.parse(raw);
-    return {
-      ...defaultConfig,
-      ...parsed
-    };
-  } catch (err) {
-    console.error('Erro ao ler config.json:', err);
-    return defaultConfig;
+function ensureConfig() {
+  if (!fs.existsSync(baseDir)) {
+    fs.mkdirSync(baseDir, { recursive: true });
   }
+  if (!fs.existsSync(configPath)) {
+    fs.writeFileSync(
+      configPath,
+      JSON.stringify(defaultConfig, null, 2)
+    );
+  }
+}
+function getConfig() {
+  ensureConfig();
+  const raw = fs.readFileSync(configPath, 'utf-8');
+  return JSON.parse(raw);
 }
 module.exports = {
   getConfig,

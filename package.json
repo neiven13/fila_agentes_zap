@@ -1,6 +1,6 @@
 {
   "name": "fila_agentes",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "description": "Sistema de Fila de Agentes",
   "main": "electron/main.js",
   "type": "commonjs",

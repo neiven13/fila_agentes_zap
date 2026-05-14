@@ -2,25 +2,19 @@ const chalk = require('chalk');
 const packageJson = require('./package.json');
 const express = require('express');
 const path = require('path');
-const fs = require('fs');
-const os = require('os'); 
+const os = require('os');
 const session = require('express-session');
-const baseDir = __dirname;
+const { getConfig } = require('./config');
+const config = getConfig();
 const agentRoutes = require('./routes/agentRoutes');
 const app = express();
-const configPath = path.join(baseDir, 'config.json');
-let config;
-try {
-  config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
-} catch (err) {
-  console.error('ERRO: Não foi possível encontrar o arquivo config.json em: ' + configPath);
-  config = { porta: 3000 };
-}
 app.use(express.json());
-// 🔐 Configuração de sessão
+/* =========================
+   SESSÃO
+========================= */
 app.use(session({
   name: 'fila.sid',
-  secret: 'fila-agentes-secret',
+  secret: config.supervisorToken || 'fila-agentes-secret',
   resave: false,
   saveUninitialized: false,
   cookie: {
@@ -29,9 +23,13 @@ app.use(session({
     sameSite: 'lax'
   }
 }));
-// 🔌 API
+/* =========================
+   API
+========================= */
 app.use('/agents', agentRoutes);
-// 🔐 Middleware de proteção
+/* =========================
+   AUTH MIDDLEWARE
+========================= */
 function requireAuth(tipo) {
   return (req, res, next) => {
     if (!req.session.user) {
@@ -43,24 +41,27 @@ function requireAuth(tipo) {
     next();
   };
 }
-// --- ROTAS DE PÁGINAS ---
-// HOME (🏠 Agora com redirecionamento automático por tipo)
+/* =========================
+   ROTAS
+========================= */
+// HOME
 app.get('/', (req, res) => {
   if (req.session.user) {
-    // Se já estiver logado, identifica o tipo e joga para o painel correto
     if (req.session.user.tipo === 'admin') {
       return res.redirect('/admin');
-    } else if (req.session.user.tipo === 'agente') {
+    }
+    if (req.session.user.tipo === 'agente') {
       return res.redirect('/agente');
     }
   }
-  // Se não estiver logado, mostra a fila pública normal
   res.sendFile(path.join(__dirname, 'public/index.html'));
 });
 // LOGIN
 app.get('/login', (req, res) => {
   if (req.session.user) {
-    return res.redirect(req.session.user.tipo === 'admin' ? '/admin' : '/agente');
+    return res.redirect(
+      req.session.user.tipo === 'admin' ? '/admin' : '/agente'
+    );
   }
   res.sendFile(path.join(__dirname, 'public/login.html'));
 });
@@ -68,7 +69,7 @@ app.get('/login', (req, res) => {
 app.get('/admin', requireAuth('admin'), (req, res) => {
   res.sendFile(path.join(__dirname, 'public/admin.html'));
 });
-// PAINEL DO AGENTE (🚀 Nova rota para o painel específico)
+// AGENTE
 app.get('/agente', requireAuth('agente'), (req, res) => {
   res.sendFile(path.join(__dirname, 'public/agente.html'));
 });
@@ -84,11 +85,10 @@ app.get('/novo', requireAuth('admin'), (req, res) => {
 app.get('/logout', async (req, res) => {
   if (req.session.user && req.session.user.tipo === 'agente') {
     try {
-      // Força o status offline antes de sair
       const agentController = require('./controllers/agentController');
       await agentController.setOfflineSilent(req.session.user);
     } catch (e) {
-      console.error("Erro ao deslogar status:", e);
+      console.error('Erro ao deslogar status:', e);
     }
   }
   req.session.destroy(() => {
@@ -96,8 +96,13 @@ app.get('/logout', async (req, res) => {
     res.redirect('/');
   });
 });
+/* =========================
+   STATIC
+========================= */
 app.use(express.static(path.join(__dirname, 'public')));
-// 🌐 Função para pegar o IP local
+/* =========================
+   IP LOCAL
+========================= */
 function getLocalIpAddress() {
   const interfaces = os.networkInterfaces();
   for (const name of Object.keys(interfaces)) {
@@ -109,35 +114,21 @@ function getLocalIpAddress() {
   }
   return 'localhost';
 }
-console.log('Iniciando servidor...');
-console.log(chalk.green(`\nBem vindo ao controle de fila de agentes!       v${packageJson.version}`));
-    console.log("::::::::::::::::::::::::::::::::::::::::::::::::::::::");
-    console.log("                      *                               ");
-    console.log('       *                                    *         ');
-    console.log("                 ░░░░░                             *  ");
-    console.log("         ░░░░   ░░░░░░░░░                             ");
-    console.log("        ░░░░░░░░░░░░░░░░░░░░░░          *             ");
-    console.log("   *                                                  ");
-    console.log("                                                      ");
-    console.log("    █████ ██  ██ █████   ████  █████  ██████ ██████   ");
-    console.log("   ██     ██  ██ ██  ██ ██  ██ ██  ██   ██   ██       ");
-    console.log("   ██████ ██  ██ █████  ██  ██ █████    ██   █████    ");
-    console.log("       ██ ██  ██ ██     ██  ██ ██  ██   ██   ██       ");
-    console.log("   █████   ████  ██      ████  ██   ██  ██   ██████   ");
-    console.log("                                                      ");
-    console.log("                 ██████  ████  █████        *         ");
-    console.log("      *              █  ██  ██ ██  ██                 ");
-    console.log("                   ██   ██████ █████                  ");
-    console.log("   *       *      █     ██  ██ ██       *        ░░░  ");
-    console.log("                 ██████ ██  ██ ██           ░░░░░░░░  ");
-    console.log("                                      ░░░░░░░░░░░░░░░░");
-    console.log("         *                                            ");
-    console.log(":::::::::::::::::::::::::::::::::::::::::::::::::::::\n");
-app.listen(config.porta, () => {
+/* =========================
+   START SERVER
+========================= */
+const PORT = config.porta || 3000;
+app.listen(PORT, () => {
   const ip = getLocalIpAddress();
   console.log('-----------------------------------------');
+  console.log(
+    chalk.green(
+      `Fila de Agentes v${packageJson.version}`
+    )
+  );
+  console.log('-----------------------------------------');
   console.log('Servidor rodando!');
-  console.log(`Acesso na rede: http://${ip}:${config.porta}`);
-  console.log(`Acesso local:   http://localhost:${config.porta}`);
+  console.log(`Acesso local:   http://localhost:${PORT}`);
+  console.log(`Acesso rede:    http://${ip}:${PORT}`);
   console.log('-----------------------------------------');
 });

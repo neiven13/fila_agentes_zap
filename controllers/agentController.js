@@ -1,272 +1,479 @@
-const db = require('../database/db');
-const service = require('../services/agentService');
-const statusMap = require('../config/statusMap');
-async function listarFila(req, res) {
-  try {
-    const fila = await service.montarFila();
-    res.json(fila);
-  } catch (err) {
-    console.error('[listarFila]', err);
-    res.status(500).json({
-      erro: 'Erro ao montar fila'
-    });
-  }
-}
-async function proximoAgente(req, res) {
-  try {
-    const agente =
-      await service.escolherProximo();
-    if (!agente) {
-      return res.json({
-        mensagem: 'Nenhum agente disponível'
-      });
-    }
-    res.json(agente);
-  } catch (err) {
-    console.error('[proximoAgente]', err);
-    res.status(500).json({
-      erro: 'Erro ao buscar próximo agente'
-    });
-  }
-}
-async function updateStatus(req, res) {
-  const { statusPainel } = req.body;
-  const {
-    token,
-    nome,
-    id
-  } = req.session.user;
-  const statusData =
-    statusMap[statusPainel];
-  const availability =
-    statusData?.chatwoot || 'offline';
-  try {
-    const sucesso =
-      await service.alterarStatusChatwoot(
-        token,
-        availability
-      );
-    if (!sucesso) {
-      return res.status(500).json({
-        erro: 'Falha na API Chatwoot'
-      });
-    }
-    await service.registrarPausa(
-      id,
-      nome,
-      statusPainel
-    );
-    console.log(
-  `[${new Date().toLocaleString('pt-BR')}] [CHATWOOT] ${nome} -> ${statusPainel} (${availability})`
-);
-    res.json({
-      ok: true,
-      status: statusPainel,
-      classe: statusData?.classe || 'offline'
-    });
-  } catch (err) {
-    console.error('[updateStatus]', err);
-    res.status(500).json({
-      erro: 'Erro interno'
-    });
-  }
-}
-async function setOfflineSilent(userData) {
-  try {
-    await service.alterarStatusChatwoot(
-      userData.token,
-      'offline'
-    );
-    await service.registrarPausa(
-      userData.id,
-      userData.nome,
-      'Logout'
-    );
-    console.log(
-      `[LOGOUT] ${userData.nome} definido como offline`
-    );
-  } catch (err) {
-    console.error('[setOfflineSilent]', err);
-  }
-}
-function listar(req, res) {
-  db.all(
-    "SELECT * FROM agentes ORDER BY ordem ASC",
-    [],
-    (err, rows) => {
-      if (err) {
-        console.error('[listar]', err);
+const db =
+    require('../database/db');
+const service =
+    require('../services/agentService');
+const statusMap =
+    require('../config/statusMap');
+// ========================================
+// FILA
+// ========================================
+async function listarFila(
+    req,
+    res
+) {
+    try {
+        const fila =
+            await service.montarFila();
+        return res.json(fila);
+    } catch (err) {
+        console.error(
+            '[listarFila]',
+            err
+        );
         return res.status(500).json({
-          erro: 'Erro ao listar agentes'
+            erro:
+                'Erro ao montar fila'
         });
-      }
-      res.json(rows);
     }
-  );
 }
-function add(req, res) {
-  const { id, nome, token } = req.body;
-  db.get(
-    "SELECT MAX(ordem) as max FROM agentes",
-    [],
-    (err, row) => {
-      if (err) {
-        console.error('[add]', err);
-        return res.status(500).json({
-          erro: 'Erro ao buscar ordem'
-        });
-      }
-      const ordem =
-        (row?.max || 0) + 1;
-      db.run(`
-        INSERT INTO agentes (
-          id,
-          nome,
-          token,
-          ordem,
-          ativo
-        )
-        VALUES (?, ?, ?, ?, 1)
-      `,
-      [id, nome, token, ordem],
-      (err) => {
-        if (err) {
-          console.error('[add]', err);
-          return res.status(500).json({
-            erro: 'Erro ao adicionar agente'
-          });
+// ========================================
+// PRÓXIMO AGENTE
+// ========================================
+async function proximoAgente(
+    req,
+    res
+) {
+    try {
+        const agente =
+            await service.escolherProximo();
+        if (!agente) {
+            return res.json({
+                mensagem:
+                    'Nenhum agente disponível'
+            });
         }
-        res.json({ ok: true });
-      });
-    }
-  );
-}
-function toggle(req, res) {
-  const { id } = req.body;
-  db.run(`
-    UPDATE agentes
-    SET ativo =
-      CASE
-        WHEN ativo = 1 THEN 0
-        ELSE 1
-      END
-    WHERE id = ?
-  `,
-  [id],
-  (err) => {
-    if (err) {
-      console.error('[toggle]', err);
-      return res.status(500).json({
-        erro: 'Erro ao alterar status'
-      });
-    }
-    res.json({ ok: true });
-  });
-}
-function up(req, res) {
-  const { id } = req.body;
-  db.get(
-    "SELECT * FROM agentes WHERE id = ?",
-    [id],
-    (err, atual) => {
-      if (!atual) {
-        return res.status(404).json({
-          erro: 'Não encontrado'
+        return res.json(agente);
+    } catch (err) {
+        console.error(
+            '[proximoAgente]',
+            err
+        );
+        return res.status(500).json({
+            erro:
+                'Erro ao buscar próximo agente'
         });
-      }
-      db.get(`
-        SELECT *
-        FROM agentes
-        WHERE ordem < ?
-        ORDER BY ordem DESC
-        LIMIT 1
-      `,
-      [atual.ordem],
-      (err, anterior) => {
+    }
+}
+// ========================================
+// UPDATE STATUS
+// ========================================
+async function updateStatus(
+    req,
+    res
+) {
+    try {
+        // ========================================
+        // VALIDA SESSÃO
+        // ========================================
+        if (!req.session.user) {
+            return res.status(401).json({
+                erro: 'Usuário não autenticado'
+            });
+        }
+        const {
+            token,
+            nome,
+            id
+        } = req.session.user;
+        // ========================================
+        // BODY
+        // ========================================
+        const {
+            statusPainel
+        } = req.body;
+        if (!statusPainel) {
+            return res.status(400).json({
+                erro: 'Status não informado'
+            });
+        }
+        // ========================================
+        // STATUS MAP
+        // ========================================
+        const statusData =
+            statusMap[statusPainel];
+        if (!statusData) {
+            return res.status(400).json({
+                erro: `Status inválido: ${statusPainel}`
+            });
+        }
+        const availability =
+            statusData.chatwoot || 'offline';
+        // ========================================
+        // CHATWOOT
+        // ========================================
+        const sucesso =
+            await service.alterarStatusChatwoot(
+                token,
+                availability
+            );
+        if (!sucesso) {
+            return res.status(500).json({
+                erro: 'Falha na API Chatwoot'
+            });
+        }
+        // ========================================
+        // REGISTRO
+        // ========================================
+        await service.registrarPausa(
+            id,
+            nome,
+            statusPainel
+        );
+        console.log(
+            `[CHATWOOT] ${nome} -> ${statusPainel} (${availability})`
+        );
+        // ========================================
+        // RESPONSE
+        // ========================================
+        return res.json({
+            ok: true,
+            status: statusPainel,
+            classe: statusData.classe || 'offline'
+        });
+    } catch (err) {
+        console.error(
+            '[updateStatus]',
+            err
+        );
+        return res.status(500).json({
+            erro: err.message || 'Erro interno'
+        });
+    }
+}
+// ========================================
+// OFFLINE SILENCIOSO
+// ========================================
+async function setOfflineSilent(
+    userData
+) {
+    try {
+        await service.alterarStatusChatwoot(
+            userData.token,
+            'offline'
+        );
+        await service.registrarPausa(
+            userData.id,
+            userData.nome,
+            'Logout'
+        );
+        console.log(
+            `[LOGOUT] ${userData.nome} definido como offline`
+        );
+    } catch (err) {
+        console.error(
+            '[setOfflineSilent]',
+            err
+        );
+    }
+}
+// ========================================
+// LISTAR AGENTES
+// ========================================
+function listar(
+    req,
+    res
+) {
+    try {
+        const rows =
+            db.prepare(`
+                SELECT *
+                FROM agentes
+                ORDER BY ordem ASC
+            `).all();
+        return res.json(rows);
+    } catch (err) {
+        console.error(
+            '[listar]',
+            err
+        );
+        return res.status(500).json({
+            erro:
+                'Erro ao listar agentes'
+        });
+    }
+}
+// ========================================
+// ADICIONAR AGENTE
+// ========================================
+function add(
+    req,
+    res
+) {
+    try {
+        const {
+            id,
+            nome,
+            token
+        } = req.body;
+        const row =
+            db.prepare(`
+                SELECT MAX(ordem) as max
+                FROM agentes
+            `).get();
+        const ordem =
+            (row?.max || 0) + 1;
+        db.prepare(`
+            INSERT INTO agentes (
+                id,
+                nome,
+                token,
+                ordem,
+                ativo
+            ) VALUES (?, ?, ?, ?, 1)
+        `).run(
+            id,
+            nome,
+            token,
+            ordem
+        );
+        return res.json({
+            ok: true
+        });
+    } catch (err) {
+        console.error(
+            '[add]',
+            err
+        );
+        return res.status(500).json({
+            erro:
+                'Erro ao adicionar agente'
+        });
+    }
+}
+// ========================================
+// TOGGLE AGENTE
+// ========================================
+function toggle(
+    req,
+    res
+) {
+    try {
+        const { id } =
+            req.body;
+        db.prepare(`
+            UPDATE agentes
+            SET ativo =
+                CASE
+                    WHEN ativo = 1 THEN 0
+                    ELSE 1
+                END
+            WHERE id = ?
+        `).run(id);
+        return res.json({
+            ok: true
+        });
+    } catch (err) {
+        console.error(
+            '[toggle]',
+            err
+        );
+        return res.status(500).json({
+            erro:
+                'Erro ao alterar status'
+        });
+    }
+}
+// ========================================
+// MOVER PARA CIMA
+// ========================================
+function up(
+    req,
+    res
+) {
+    try {
+        const { id } =
+            req.body;
+        const atual =
+            db.prepare(`
+                SELECT *
+                FROM agentes
+                WHERE id = ?
+            `).get(id);
+        if (!atual) {
+            return res.status(404).json({
+                erro:
+                    'Não encontrado'
+            });
+        }
+        const anterior =
+            db.prepare(`
+                SELECT *
+                FROM agentes
+                WHERE ordem < ?
+                ORDER BY ordem DESC
+                LIMIT 1
+            `).get(atual.ordem);
         if (!anterior) {
-          return res.json({ ok: true });
+            return res.json({
+                ok: true
+            });
         }
-        db.run(
-          "UPDATE agentes SET ordem = ? WHERE id = ?",
-          [anterior.ordem, atual.id]
+        db.prepare(`
+            UPDATE agentes
+            SET ordem = ?
+            WHERE id = ?
+        `).run(
+            anterior.ordem,
+            atual.id
         );
-        db.run(
-          "UPDATE agentes SET ordem = ? WHERE id = ?",
-          [atual.ordem, anterior.id]
+        db.prepare(`
+            UPDATE agentes
+            SET ordem = ?
+            WHERE id = ?
+        `).run(
+            atual.ordem,
+            anterior.id
         );
-        res.json({ ok: true });
-      });
-    });
-}
-function down(req, res) {
-  const { id } = req.body;
-  db.get(
-    "SELECT * FROM agentes WHERE id = ?",
-    [id],
-    (err, atual) => {
-      if (!atual) {
-        return res.status(404).json({
-          erro: 'Não encontrado'
+        return res.json({
+            ok: true
         });
-      }
-      db.get(`
-        SELECT *
-        FROM agentes
-        WHERE ordem > ?
-        ORDER BY ordem ASC
-        LIMIT 1
-      `,
-      [atual.ordem],
-      (err, proximo) => {
+    } catch (err) {
+        console.error(
+            '[up]',
+            err
+        );
+        return res.status(500).json({
+            erro:
+                'Erro ao mover agente'
+        });
+    }
+}
+// ========================================
+// MOVER PARA BAIXO
+// ========================================
+function down(
+    req,
+    res
+) {
+    try {
+        const { id } =
+            req.body;
+        const atual =
+            db.prepare(`
+                SELECT *
+                FROM agentes
+                WHERE id = ?
+            `).get(id);
+        if (!atual) {
+            return res.status(404).json({
+                erro:
+                    'Não encontrado'
+            });
+        }
+        const proximo =
+            db.prepare(`
+                SELECT *
+                FROM agentes
+                WHERE ordem > ?
+                ORDER BY ordem ASC
+                LIMIT 1
+            `).get(atual.ordem);
         if (!proximo) {
-          return res.json({ ok: true });
+            return res.json({
+                ok: true
+            });
         }
-        db.run(
-          "UPDATE agentes SET ordem = ? WHERE id = ?",
-          [proximo.ordem, atual.id]
+        db.prepare(`
+            UPDATE agentes
+            SET ordem = ?
+            WHERE id = ?
+        `).run(
+            proximo.ordem,
+            atual.id
         );
-        db.run(
-          "UPDATE agentes SET ordem = ? WHERE id = ?",
-          [atual.ordem, proximo.id]
+        db.prepare(`
+            UPDATE agentes
+            SET ordem = ?
+            WHERE id = ?
+        `).run(
+            atual.ordem,
+            proximo.id
         );
-        res.json({ ok: true });
-      });
-    });
-}
-function reorder(req, res) {
-  const { dragId, targetId } = req.body;
-  db.get(
-    "SELECT * FROM agentes WHERE id = ?",
-    [dragId],
-    (err, drag) => {
-      db.get(
-        "SELECT * FROM agentes WHERE id = ?",
-        [targetId],
-        (err, target) => {
-          if (!drag || !target) {
-            return res.json({ ok: false });
-          }
-          db.run(
-            "UPDATE agentes SET ordem = ? WHERE id = ?",
-            [target.ordem, drag.id]
-          );
-          db.run(
-            "UPDATE agentes SET ordem = ? WHERE id = ?",
-            [drag.ordem, target.id]
-          );
-          res.json({ ok: true });
+        return res.json({
+            ok: true
         });
-    });
+    } catch (err) {
+        console.error(
+            '[down]',
+            err
+        );
+        return res.status(500).json({
+            erro:
+                'Erro ao mover agente'
+        });
+    }
 }
+// ========================================
+// REORDER DRAG DROP
+// ========================================
+function reorder(
+    req,
+    res
+) {
+    try {
+        const {
+            dragId,
+            targetId
+        } = req.body;
+        const drag =
+            db.prepare(`
+                SELECT *
+                FROM agentes
+                WHERE id = ?
+            `).get(dragId);
+        const target =
+            db.prepare(`
+                SELECT *
+                FROM agentes
+                WHERE id = ?
+            `).get(targetId);
+        if (!drag || !target) {
+            return res.json({
+                ok: false
+            });
+        }
+        db.prepare(`
+            UPDATE agentes
+            SET ordem = ?
+            WHERE id = ?
+        `).run(
+            target.ordem,
+            drag.id
+        );
+        db.prepare(`
+            UPDATE agentes
+            SET ordem = ?
+            WHERE id = ?
+        `).run(
+            drag.ordem,
+            target.id
+        );
+        return res.json({
+            ok: true
+        });
+    } catch (err) {
+        console.error(
+            '[reorder]',
+            err
+        );
+        return res.status(500).json({
+            erro:
+                'Erro ao reordenar agentes'
+        });
+    }
+}
+// ========================================
+// EXPORT
+// ========================================
 module.exports = {
-  listarFila,
-  proximoAgente,
-  updateStatus,
-  setOfflineSilent,
-  listar,
-  add,
-  toggle,
-  up,
-  down,
-  reorder
+    listarFila,
+    proximoAgente,
+    updateStatus,
+    setOfflineSilent,
+    listar,
+    add,
+    toggle,
+    up,
+    down,
+    reorder
 };

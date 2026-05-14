@@ -19,6 +19,7 @@
             --status-online: #2ecc71;
             --status-busy: #f1c40f;
             --status-offline: #e74c3c;
+            --status-bathroom: #9b59b6;
         }
         * {
             box-sizing: border-box;
@@ -26,11 +27,9 @@
         body {
             font-family: 'Poppins', sans-serif;
             background:
-                linear-gradient(
-                    135deg,
+                linear-gradient(135deg,
                     var(--grad-inicio) 0%,
-                    var(--grad-fim) 100%
-                );
+                    var(--grad-fim) 100%);
             background-attachment: fixed;
             color: var(--text-main);
             margin: 0;
@@ -89,6 +88,12 @@
             box-shadow:
                 0 0 25px var(--status-offline),
                 0 0 25px rgba(231, 76, 60, 0.4);
+        }
+        .status-dot.bathroom {
+            background-color: var(--status-bathroom);
+            box-shadow:
+                0 0 25px var(--status-bathroom),
+                0 0 25px rgba(155, 89, 182, 0.4);
         }
         /* ========================= */
         /* TEXTO */
@@ -189,7 +194,9 @@
         <div class="status-indicator-container">
             <div id="statusCircle" class="status-dot"></div>
         </div>
-        <h2 id="saudacao">Olá!</h2>
+        <h2 id="saudacao">
+            Olá!
+        </h2>
         <p>
             Defina seu status de disponibilidade
         </p>
@@ -234,38 +241,111 @@
         </a>
     </div>
     <script>
+        // =========================================
+        // OFFSET SERVIDOR
+        // =========================================
+        let serverOffset = 0;
+        async function sincronizarHorario() {
+            try {
+                const response =
+                    await fetch(
+                        '/agents/server-time'
+                    );
+                const data =
+                    await response.json();
+                // DIFERENÇA ENTRE SERVIDOR E CLIENTE
+                serverOffset =
+                    data.serverTime - Date.now();
+                console.log(
+                    '[OFFSET]',
+                    serverOffset
+                );
+            } catch (err) {
+                console.error(
+                    'Erro sincronizando horário:',
+                    err
+                );
+            }
+        }
+        // =========================================
+        // TIMER
+        // =========================================
         let timerInterval = null;
         const TEMPOS = {
             'Almoço': 72 * 60,
             'Lanche': 15 * 60
         };
-        // =========================
-        // TIMER
-        // =========================
-        function iniciarTimer(status, dataHora) {
+        function iniciarTimer(
+            status,
+            dataHora
+        ) {
             clearInterval(timerInterval);
             const timerBox =
-                document.getElementById('timerBox');
+                document.getElementById(
+                    'timerBox'
+                );
             const timerEl =
-                document.getElementById('timer');
-            if (!TEMPOS[status]) {
-                timerBox.style.display = 'none';
+                document.getElementById(
+                    'timer'
+                );
+            const timerLabel =
+                document.querySelector(
+                    '.timer-label'
+                );
+            // =====================================
+            // MOSTRA TIMER
+            // =====================================
+            if (
+                !TEMPOS[status] &&
+                status !== 'Banheiro'
+            ) {
+                timerBox.style.display =
+                    'none';
                 return;
             }
-            timerBox.style.display = 'block';
-            const limiteSegundos =
-                TEMPOS[status];
+            timerBox.style.display =
+                'block';
+            // =====================================
+            // TIMESTAMP SERVIDOR
+            // =====================================
             const inicio =
-                new Date(
-                    dataHora.replace(' ', 'T')
-                ).getTime();
+                Number(dataHora);
             function atualizar() {
                 const agora =
-                    Date.now();
+                    Date.now() + serverOffset;
                 const decorrido =
                     Math.floor(
                         (agora - inicio) / 1000
                     );
+                // =====================================
+                // BANHEIRO
+                // =====================================
+                if (status === 'Banheiro') {
+                    timerLabel.innerText =
+                        'Tempo em pausa';
+                    const minutos =
+                        Math.floor(
+                            decorrido / 60
+                        )
+                            .toString()
+                            .padStart(2, '0');
+                    const segundos =
+                        (decorrido % 60)
+                            .toString()
+                            .padStart(2, '0');
+                    timerEl.innerText =
+                        `${minutos}:${segundos}`;
+                    timerEl.className =
+                        'timer';
+                    return;
+                }
+                // =====================================
+                // TIMER NORMAL
+                // =====================================
+                timerLabel.innerText =
+                    'Tempo restante';
+                const limiteSegundos =
+                    TEMPOS[status];
                 let restante =
                     limiteSegundos - decorrido;
                 if (restante < 0) {
@@ -281,35 +361,47 @@
                         .padStart(2, '0');
                 timerEl.innerText =
                     `${minutos}:${segundos}`;
-                timerEl.className = 'timer';
+                timerEl.className =
+                    'timer';
                 if (restante <= 300) {
-                    timerEl.classList.add('danger');
-                } else if (restante <= 900) {
-                    timerEl.classList.add('warning');
+                    timerEl.classList.add(
+                        'danger'
+                    );
+                } else if (
+                    restante <= 900
+                ) {
+                    timerEl.classList.add(
+                        'warning'
+                    );
                 }
             }
             atualizar();
             timerInterval =
-                setInterval(atualizar, 1000);
+                setInterval(
+                    atualizar,
+                    1000
+                );
         }
-        // =========================
+        // =========================================
         // PERFIL
-        // =========================
+        // =========================================
         async function carregarPerfil() {
             try {
                 const response =
-                    await fetch('/agents/me');
+                    await fetch(
+                        '/agents/me'
+                    );
                 const data =
                     await response.json();
                 console.log(data);
-                // saudação
+                // SAUDAÇÃO
                 if (data.nome) {
                     document.getElementById(
                         'saudacao'
                     ).innerText =
                         `Olá, ${data.nome}!`;
                 }
-                // círculo
+                // CÍRCULO
                 const statusCircle =
                     document.getElementById(
                         'statusCircle'
@@ -321,7 +413,7 @@
                         data.status_class
                     );
                 }
-                // select
+                // SELECT
                 const select =
                     document.getElementById(
                         'statusSelect'
@@ -330,25 +422,31 @@
                     select.value =
                         data.status;
                 }
-                // mensagem
+                // MENSAGEM
                 const msgDiv =
-                    document.getElementById('msg');
+                    document.getElementById(
+                        'msg'
+                    );
                 if (data.status) {
                     let dataFormatada = '';
                     if (data.data_hora) {
                         const dt =
                             new Date(
-                                data.data_hora.replace(' ', 'T')
+                                Number(
+                                    data.data_hora
+                                )
                             );
                         dataFormatada =
-                            dt.toLocaleString('pt-BR');
+                            dt.toLocaleString(
+                                'pt-BR'
+                            );
                     }
                     msgDiv.innerHTML = `
-                        Status atual:
-                        <b>${data.status}</b>
-                        <br>
-                        <small>${dataFormatada}</small>
-                    `;
+                    Status atual:
+                    <b>${data.status}</b>
+                    <br>
+                    <small>${dataFormatada}</small>
+                `;
                 }
                 // TIMER
                 if (
@@ -367,17 +465,23 @@
                 );
             }
         }
-        // =========================
+        // =========================================
         // ALTERAR STATUS
-        // =========================
-        async function mudarStatus(statusPainel) {
-            if (!statusPainel) return;
+        // =========================================
+        async function mudarStatus(
+            statusPainel
+        ) {
+            if (!statusPainel) {
+                return;
+            }
             const msgDiv =
-                document.getElementById('msg');
+                document.getElementById(
+                    'msg'
+                );
             msgDiv.style.color =
-                "var(--text-dim)";
+                'var(--text-dim)';
             msgDiv.innerText =
-                "⏳ Atualizando status...";
+                '⏳ Atualizando status...';
             try {
                 const response =
                     await fetch(
@@ -401,22 +505,35 @@
                     );
                 }
                 msgDiv.style.color =
-                    "#4caf50";
+                    '#4caf50';
                 msgDiv.innerText =
-                    "✅ Status atualizado!";
+                    '✅ Status atualizado!';
                 setTimeout(() => {
                     location.reload();
                 }, 700);
             } catch (err) {
                 console.error(err);
                 msgDiv.style.color =
-                    "var(--danger)";
+                    'var(--danger)';
                 msgDiv.innerText =
-                    "❌ Erro ao atualizar status.";
+                    `❌ ${err.message}`;
             }
         }
-        // =========================
-        carregarPerfil();
+        // =========================================
+        // INICIAR
+        // =========================================
+        async function iniciarSistema() {
+            // SINCRONIZA HORÁRIO
+            await sincronizarHorario();
+            // CARREGA PERFIL
+            await carregarPerfil();
+            // RESINCRONIZA OFFSET
+            setInterval(
+                sincronizarHorario,
+                60000
+            );
+        }
+        iniciarSistema();
     </script>
 </body>
 </html>

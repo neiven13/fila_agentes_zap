@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fila Agentes</title>
+    <title>
+        Fila Agentes
+    </title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -35,6 +37,14 @@
             align-items: center;
             min-height: 100vh;
         }
+        .topo {
+            display: flex;
+            justify-content: flex-end;
+            width: 95%;
+            max-width: 1600px;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
         .container {
             background: var(--card-bg);
             padding: 2rem;
@@ -54,14 +64,6 @@
             font-weight: 600;
             font-size: 1.8rem;
             letter-spacing: 1px;
-        }
-        .topo {
-            display: flex;
-            justify-content: flex-end;
-            width: 95%;
-            max-width: 1600px;
-            gap: 10px;
-            margin-bottom: 20px;
         }
         button {
             background: #2a2e37;
@@ -105,19 +107,22 @@
         }
         .agent-card.pausa {
             border: 2px solid #f1c40f;
-            background: rgba(241, 196, 15, 0.15);
+            background:
+                rgba(241, 196, 15, 0.15);
             box-shadow:
                 0 0 25px rgba(241, 196, 15, 0.35);
         }
         .agent-card.atrasado {
             border: 2px solid #e74c3c;
-            background: rgba(231, 76, 60, 0.15);
+            background:
+                rgba(231, 76, 60, 0.15);
             box-shadow:
                 0 0 25px rgba(231, 76, 60, 0.35);
         }
         .agent-card.bathroom {
             border: 2px solid var(--bathroom);
-            background: rgba(168, 85, 247, 0.15);;
+            background:
+                rgba(168, 85, 247, 0.15);
             box-shadow:
                 0 0 25px rgba(168, 85, 247, 0.35);
         }
@@ -164,6 +169,11 @@
             background: var(--offline);
             box-shadow:
                 0 0 10px var(--offline);
+        }
+        .status-dot.bathroom {
+            background: var(--bathroom);
+            box-shadow:
+                0 0 10px var(--bathroom);
         }
         .status-dot.hidden {
             display: none;
@@ -220,34 +230,93 @@
         </div>
     </div>
     <script>
+        // ========================================
+        // OFFSET SERVIDOR
+        // ========================================
+        let serverOffset = 0;
+        async function sincronizarHorario() {
+            try {
+                const res =
+                    await fetch(
+                        '/agents/server-time',
+                        {
+                            credentials:
+                                'include'
+                        }
+                    );
+                const data =
+                    await res.json();
+                serverOffset =
+                    data.serverTime - Date.now();
+                console.log(
+                    '[OFFSET]',
+                    serverOffset
+                );
+            } catch (err) {
+                console.error(
+                    'Erro sincronizando horário',
+                    err
+                );
+            }
+        }
+        // ========================================
+        // TIMER
+        // ========================================
         function iniciarTimer(
             elementId,
             dataHora,
             limiteMinutos,
-            cardId
+            cardId,
+            statusClass
         ) {
             const elemento =
-                document.getElementById(elementId);
+                document.getElementById(
+                    elementId
+                );
             const card =
-                document.getElementById(cardId);
-            if (!elemento || !card) return;
+                document.getElementById(
+                    cardId
+                );
+            if (!elemento || !card) {
+                return;
+            }
             function atualizar() {
                 const inicio =
-                    new Date(
-                        dataHora.replace(' ', 'T')
-                    );
+                    Number(dataHora);
                 const agora =
-                    new Date();
+                    Date.now() + serverOffset;
                 const diffMs =
                     agora - inicio;
-                const minutos =
-                    Math.floor(diffMs / 60000);
-                const segundos =
+                const diffSegundos =
                     Math.floor(
-                        (diffMs % 60000) / 1000
+                        diffMs / 1000
                     );
+                // ====================================
+                // BANHEIRO
+                // ====================================
+                if (statusClass === 'bathroom') {
+                    const mins =
+                        String(
+                            Math.floor(
+                                diffSegundos / 60
+                            )
+                        ).padStart(2, '0');
+                    const secs =
+                        String(
+                            diffSegundos % 60
+                        ).padStart(2, '0');
+                    elemento.innerHTML =
+                        `🚽 ${mins}:${secs}`;
+                    return;
+                }
+                // ====================================
+                // TIMER NORMAL
+                // ====================================
+                const limiteSegundos =
+                    limiteMinutos * 60;
                 const restante =
-                    limiteMinutos - minutos;
+                    limiteSegundos -
+                    diffSegundos;
                 // RESET
                 card.classList.remove(
                     'pausa',
@@ -255,41 +324,60 @@
                 );
                 // DENTRO DO TEMPO
                 if (restante >= 0) {
-                    card.classList.add('pausa');
+                    card.classList.add(
+                        'pausa'
+                    );
                     const mins =
-                        String(restante)
-                            .padStart(2, '0');
+                        String(
+                            Math.floor(
+                                restante / 60
+                            )
+                        ).padStart(2, '0');
                     const secs =
-                        String(59 - segundos)
-                            .padStart(2, '0');
+                        String(
+                            restante % 60
+                        ).padStart(2, '0');
                     elemento.innerHTML =
                         `⏱️ ${mins}:${secs}`;
                 }
                 // ATRASADO
                 else {
-                    card.classList.add('atrasado');
+                    card.classList.add(
+                        'atrasado'
+                    );
                     const atraso =
                         Math.abs(restante);
                     const mins =
-                        String(atraso)
-                            .padStart(2, '0');
+                        String(
+                            Math.floor(
+                                atraso / 60
+                            )
+                        ).padStart(2, '0');
                     const secs =
-                        String(segundos)
-                            .padStart(2, '0');
+                        String(
+                            atraso % 60
+                        ).padStart(2, '0');
                     elemento.innerHTML =
                         `⚠️ -${mins}:${secs}`;
                 }
             }
             atualizar();
-            setInterval(atualizar, 1000);
+            setInterval(
+                atualizar,
+                1000
+            );
         }
+        // ========================================
+        // VERIFICAR LOGIN
+        // ========================================
         async function verificar() {
             try {
                 const res =
                     await fetch(
                         '/agents/me',
                         {
-                            credentials: 'include'
+                            credentials:
+                                'include'
                         }
                     );
                 const data =
@@ -297,51 +385,70 @@
                 if (data.logado) {
                     document.getElementById(
                         'btnLogin'
-                    ).style.display = 'none';
+                    ).style.display =
+                        'none';
                     document.getElementById(
                         'btnLogout'
-                    ).style.display = 'inline';
-                    if (data.tipo === 'admin') {
+                    ).style.display =
+                        'inline';
+                    if (
+                        data.tipo === 'admin'
+                    ) {
                         document.getElementById(
                             'btnAdmin'
-                        ).style.display = 'inline';
+                        ).style.display =
+                            'inline';
                     }
                 }
             } catch (err) {
                 console.error(err);
             }
         }
+        // ========================================
+        // CARREGAR FILA
+        // ========================================
         async function carregar() {
             try {
                 const res =
                     await fetch(
                         '/agents/fila',
                         {
-                            credentials: 'include'
+                            credentials:
+                                'include'
                         }
                     );
                 const data =
                     await res.json();
                 const lista =
-                    document.getElementById('lista');
+                    document.getElementById(
+                        'lista'
+                    );
                 lista.innerHTML = '';
                 data.forEach(a => {
                     const card =
-                        document.createElement('div');
+                        document.createElement(
+                            'div'
+                        );
                     const isAtivo =
                         a.ultimoChamado
                             ? 'active'
                             : '';
                     card.className =
                         `agent-card ${isAtivo}`;
-                    if (a.status_class === 'bathroom') {
-                        card.classList.add('bathroom');
+                    if (
+                        a.status_class ===
+                        'bathroom'
+                    ) {
+                        card.classList.add(
+                            'bathroom'
+                        );
                     }
                     card.id =
                         `card-${a.id}`;
-                    // ESCONDE BOLINHA DURANTE PAUSA
                     const hideDot =
-                        a.timer ? 'hidden' : '';
+                        a.timer
+                            ? 'hidden'
+                            : '';
                     card.innerHTML = `
                         <div class="
                             status-dot
@@ -367,7 +474,10 @@
                                 </svg>
                                 ${a.conversas} conversas
                             </span>
-                            ${a.timer && a.data_hora
+                            ${(
+                            a.timer ||
+                            a.status_class === 'bathroom'
+                        ) && a.data_hora
                             ? `
                                     <div class="timer-box">
                                         <div class="timer-label">
@@ -388,14 +498,18 @@
                     lista.appendChild(card);
                     // TIMER
                     if (
-                        a.timer &&
+                        (
+                            a.timer ||
+                            a.status_class === 'bathroom'
+                        ) &&
                         a.data_hora
                     ) {
                         iniciarTimer(
                             `timer-${a.id}`,
                             a.data_hora,
                             a.timer,
-                            `card-${a.id}`
+                            `card-${a.id}`,
+                            a.status_class
                         );
                     }
                 });
@@ -403,21 +517,38 @@
                 console.error(err);
             }
         }
+        // ========================================
         function login() {
-            window.location = '/login';
+            window.location =
+                '/login';
         }
         function admin() {
-            window.location = '/admin';
+            window.location =
+                '/admin';
         }
         function logout() {
-            window.location = '/logout';
+            window.location =
+                '/logout';
         }
-        verificar();
-        carregar();
-        setInterval(
-            carregar,
-            3000
-        );
+        // ========================================
+        // INICIAR
+        // ========================================
+        async function iniciarSistema() {
+            await sincronizarHorario();
+            verificar();
+            carregar();
+            // REFRESH FILA
+            setInterval(
+                carregar,
+                3000
+            );
+            // RESINCRONIZA OFFSET
+            setInterval(
+                sincronizarHorario,
+                60000
+            );
+        }
+        iniciarSistema();
     </script>
 </body>
 </html>

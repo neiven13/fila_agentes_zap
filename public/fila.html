@@ -1,9 +1,12 @@
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel de Operação - Triagem (TV)</title>
+    <title>
+        Painel de Operação | Triagem
+    </title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -20,6 +23,7 @@
             --bathroom: #562980;
             --radius: 24px;
         }
+
         body {
             font-family: 'Poppins', sans-serif;
             background:
@@ -35,6 +39,7 @@
             min-height: 100vh;
             padding: 20px;
         }
+
         .container {
             background: var(--card-bg);
             padding: 2.5rem;
@@ -48,24 +53,28 @@
             -webkit-backdrop-filter: blur(5px);
             backdrop-filter: blur(50px);
         }
+
         .header-actions {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 1.5rem;
         }
+
         .controls {
             max-width: 500px;
             margin:
                 0 auto 2.5rem;
             text-align: center;
         }
+
         h2 {
             margin-bottom: 1.5rem;
             font-weight: 600;
             font-size: 1.8rem;
             text-align: center;
         }
+
         .btn {
             background: #2a2e37;
             color: var(--text-main);
@@ -78,9 +87,11 @@
             font-size: 0.9rem;
             text-decoration: none;
         }
+
         .btn:hover {
             background: #3f4451;
         }
+
         .btn-primary {
             background: var(--accent);
             width: 100%;
@@ -92,10 +103,12 @@
                 0 8px 20px rgba(108, 99, 255, 0.3);
             border-radius: 16px;
         }
+
         .btn-primary:hover {
             background: #5a52d4;
             transform: translateY(-2px);
         }
+
         #resultado {
             background:
                 rgba(108, 99, 255, 0.1);
@@ -111,20 +124,24 @@
             animation:
                 fadeIn 0.3s ease;
         }
+
         @keyframes fadeIn {
             from {
                 opacity: 0;
             }
+
             to {
                 opacity: 1;
             }
         }
+
         .agent-list {
             display: grid;
             grid-template-columns:
                 repeat(5, 1fr);
             gap: 15px;
         }
+
         .agent-card {
             background: var(--item-bg);
             border-radius: 18px;
@@ -140,6 +157,7 @@
             position: relative;
             min-height: 130px;
         }
+
         .agent-card.active {
             border-color: var(--online);
             background:
@@ -148,20 +166,24 @@
                 0 0 20px rgba(76, 175, 80, 0.15);
             transform: scale(1.03);
         }
+
         .info-box {
             display: flex;
             flex-direction: column;
             align-items: center;
             gap: 5px;
         }
+
         .nome {
             font-weight: 600;
             font-size: 1.1rem;
         }
+
         .conversas {
             color: var(--text-dim);
             font-size: 0.85rem;
         }
+
         .status-indicator {
             position: absolute;
             top: 15px;
@@ -173,21 +195,31 @@
                 opacity 0.3s ease,
                 transform 0.3s ease;
         }
+
         .online-dot {
             background: var(--online);
             box-shadow:
                 0 0 10px var(--online);
         }
+
         .busy-dot {
             background: var(--busy);
             box-shadow:
                 0 0 10px var(--busy);
         }
+
         .offline-dot {
             background: var(--offline);
             box-shadow:
                 0 0 10px var(--offline);
         }
+
+        .bathroom-dot {
+            background: var(--bathroom);
+            box-shadow:
+                0 0 10px var(--bathroom);
+        }
+
         .timer-box {
             margin-top: 12px;
             display: flex;
@@ -195,46 +227,58 @@
             align-items: center;
             gap: 4px;
         }
+
         .timer-label {
             font-size: 0.75rem;
             color: #f39c12;
             font-weight: 600;
         }
+
         .timer-count {
             font-size: 1.1rem;
             font-weight: 700;
             color: #ffffff;
             letter-spacing: 1px;
         }
+
         .agent-card.pausa {
             border: 2px solid #f1c40f;
-            background: rgba(241, 196, 15, 0.15);
+            background:
+                rgba(241, 196, 15, 0.15);
             box-shadow:
                 0 0 25px rgba(241, 196, 15, 0.35);
         }
+
         .agent-card.atrasado {
             border: 2px solid #e74c3c;
-            background: rgba(231, 76, 60, 0.15);
+            background:
+                rgba(231, 76, 60, 0.15);
             box-shadow:
                 0 0 25px rgba(231, 76, 60, 0.35);
         }
+
         .agent-card.bathroom {
             border: 2px solid var(--bathroom);
-            background: rgba(168, 85, 247, 0.15);;
+            background:
+                rgba(168, 85, 247, 0.15);
             box-shadow:
                 0 0 25px rgba(168, 85, 247, 0.35);
         }
+
         .agent-card.pausa .status-indicator,
-        .agent-card.atrasado .status-indicator {
+        .agent-card.atrasado .status-indicator,
+        .agent-card.bathroom .status-indicator {
             opacity: 0;
             transform: scale(0);
         }
+
         @media (max-width: 1400px) {
             .agent-list {
                 grid-template-columns:
                     repeat(4, 1fr);
             }
         }
+
         @media (max-width: 1000px) {
             .agent-list {
                 grid-template-columns:
@@ -243,6 +287,7 @@
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <div class="header-actions">
@@ -253,7 +298,9 @@
                 Sair
             </button>
         </div>
-        <h2>Painel de Operação</h2>
+        <h2>
+            Painel de Operação
+        </h2>
         <div class="controls">
             <div id="resultado"></div>
             <button class="btn btn-primary" id="btnProximo" onclick="proximo()">
@@ -264,67 +311,146 @@
         </div>
     </div>
     <script>
+        // ========================================
+        // OFFSET SERVIDOR
+        // ========================================
+        let serverOffset = 0;
+        async function sincronizarHorario() {
+            try {
+                const res =
+                    await fetch(
+                        '/agents/server-time',
+                        {
+                            credentials:
+                                'include'
+                        }
+                    );
+                const data =
+                    await res.json();
+                // DIFERENÇA ENTRE SERVIDOR E CLIENTE
+                serverOffset =
+                    data.serverTime - Date.now();
+                console.log(
+                    '[OFFSET]',
+                    serverOffset
+                );
+            } catch (err) {
+                console.error(
+                    'Erro sincronizando horário',
+                    err
+                );
+            }
+        }
+        // ========================================
+        // TIMER
+        // ========================================
         function iniciarTimer(
             elementId,
             dataHora,
             limiteMinutos,
-            cardId
+            cardId,
+            statusClass
         ) {
             const elemento =
-                document.getElementById(elementId);
+                document.getElementById(
+                    elementId
+                );
             const card =
-                document.getElementById(cardId);
-            if (!elemento) return;
+                document.getElementById(
+                    cardId
+                );
+            if (!elemento || !card) {
+                return;
+            }
             function atualizar() {
                 const inicio =
-                    new Date(
-                        dataHora.replace(' ', 'T')
-                    );
+                    Number(dataHora);
                 const agora =
-                    new Date();
+                    Date.now() + serverOffset;
                 const diffMs =
                     agora - inicio;
-                const minutos =
-                    Math.floor(diffMs / 60000);
-                const segundos =
-                    Math.floor((diffMs % 60000) / 1000);
+                const diffSegundos =
+                    Math.floor(
+                        diffMs / 1000
+                    );
+                // ====================================
+                // BANHEIRO
+                // ====================================
+                if (statusClass === 'bathroom') {
+                    const mins =
+                        String(
+                            Math.floor(
+                                diffSegundos / 60
+                            )
+                        ).padStart(2, '0');
+                    const secs =
+                        String(
+                            diffSegundos % 60
+                        ).padStart(2, '0');
+                    elemento.innerHTML =
+                        `🚽 ${mins}:${secs}`;
+                    return;
+                }
+                // ====================================
+                // TIMER NORMAL
+                // ====================================
+                const limiteSegundos =
+                    limiteMinutos * 60;
                 const restante =
-                    limiteMinutos - minutos;
-                // RESET
+                    limiteSegundos -
+                    diffSegundos;
                 card.classList.remove(
                     'pausa',
                     'atrasado'
                 );
-                // AINDA DENTRO DO TEMPO
+                // DENTRO DO TEMPO
                 if (restante >= 0) {
-                    card.classList.add('pausa');
+                    card.classList.add(
+                        'pausa'
+                    );
                     const mins =
-                        String(restante)
-                            .padStart(2, '0');
+                        String(
+                            Math.floor(
+                                restante / 60
+                            )
+                        ).padStart(2, '0');
                     const secs =
-                        String(59 - segundos)
-                            .padStart(2, '0');
+                        String(
+                            restante % 60
+                        ).padStart(2, '0');
                     elemento.innerHTML =
                         `⏱️ ${mins}:${secs}`;
                 }
                 // ATRASADO
                 else {
-                    card.classList.add('atrasado');
+                    card.classList.add(
+                        'atrasado'
+                    );
                     const atraso =
                         Math.abs(restante);
                     const mins =
-                        String(atraso)
-                            .padStart(2, '0');
+                        String(
+                            Math.floor(
+                                atraso / 60
+                            )
+                        ).padStart(2, '0');
                     const secs =
-                        String(segundos)
-                            .padStart(2, '0');
+                        String(
+                            atraso % 60
+                        ).padStart(2, '0');
                     elemento.innerHTML =
                         `⚠️ -${mins}:${secs}`;
                 }
             }
             atualizar();
-            setInterval(atualizar, 1000);
+            setInterval(
+                atualizar,
+                1000
+            );
         }
+        // ========================================
+        // CARREGAR FILA
+        // ========================================
         async function carregar() {
             try {
                 const res =
@@ -352,73 +478,98 @@
                     // CLASSE CARD
                     card.className =
                         `agent-card ${isAtivo}`;
-                    if (a.status_class === 'bathroom') {
-                        card.classList.add('bathroom');
+                    if (
+                        a.status_class === 'bathroom'
+                    ) {
+                        card.classList.add(
+                            'bathroom'
+                        );
                     }
                     // ID CARD
                     card.id =
                         `card-${a.id}`;
                     // STATUS BOLINHA
-                    const statusClass =
+                    let statusClass =
+                        'offline-dot';
+                    if (
                         a.status_class === 'online'
-                            ? 'online-dot'
-                            : a.status_class === 'busy'
-                                ? 'busy-dot'
-                                : 'offline-dot';
+                    ) {
+                        statusClass =
+                            'online-dot';
+                    } else if (
+                        a.status_class === 'busy'
+                    ) {
+                        statusClass =
+                            'busy-dot';
+                    } else if (
+                        a.status_class === 'bathroom'
+                    ) {
+                        statusClass =
+                            'bathroom-dot';
+                    }
                     card.innerHTML = `
-        <div class="status-indicator ${statusClass}"></div>
-        <div class="info-box">
-            <span class="nome">
-                ${a.nome}
-            </span>
-            <span class="conversas">
-                ${a.conversas} em aberto
-            </span>
-            ${a.timer && a.data_hora
+                    <div class="status-indicator ${statusClass}"></div>
+                    <div class="info-box">
+                        <span class="nome">
+                            ${a.nome}
+                        </span>
+                        <span class="conversas">
+                            ${a.conversas} em aberto
+                        </span>
+                        ${(
+                            a.timer ||
+                            a.status_class === 'bathroom'
+                        ) && a.data_hora
                             ? `
-                    <div class="timer-box">
-                        <div class="timer-label">
-                            ${a.status}
-                        </div>
-                        <div
-                            class="timer-count"
-                            id="timer-${a.id}"
-                        >
-                            --:--
-                        </div>
-                    </div>
-                `
+                                <div class="timer-box">
+                                    <div class="timer-label">
+                                        ${a.status}
+                                    </div>
+                                    <div
+                                        class="timer-count"
+                                        id="timer-${a.id}"
+                                    >
+                                        --:--
+                                    </div>
+                                </div>
+                            `
                             : ''
                         }
-        </div>
-    `;
+                    </div>
+                `;
                     container.appendChild(card);
                     // TIMER
                     if (
-                        a.timer &&
+                        (
+                            a.timer ||
+                            a.status_class === 'bathroom'
+                        ) &&
                         a.data_hora
                     ) {
                         iniciarTimer(
                             `timer-${a.id}`,
                             a.data_hora,
                             a.timer,
-                            `card-${a.id}`
+                            `card-${a.id}`,
+                            a.status_class
                         );
                     }
                 });
             } catch (err) {
                 console.error(
-                    "Erro ao carregar fila",
+                    'Erro ao carregar fila',
                     err
                 );
             }
         }
+        // ========================================
+        // PRÓXIMO
+        // ========================================
         async function proximo() {
             const btn =
                 document.getElementById(
                     'btnProximo'
                 );
-            // evita clique duplo
             if (btn.disabled) {
                 return;
             }
@@ -463,17 +614,34 @@
                     '🔔 Próximo Agente';
             }
         }
+        // ========================================
         function voltar() {
             window.location = '/';
         }
         function logout() {
             window.location = '/logout';
         }
-        carregar();
-        setInterval(
-            carregar,
-            3000
-        );
+        // ========================================
+        // INICIAR
+        // ========================================
+        async function iniciarSistema() {
+            // SINCRONIZA COM SERVIDOR
+            await sincronizarHorario();
+            // PRIMEIRO LOAD
+            carregar();
+            // REFRESH FILA
+            setInterval(
+                carregar,
+                3000
+            );
+            // RESINCRONIZA OFFSET
+            setInterval(
+                sincronizarHorario,
+                60000
+            );
+        }
+        iniciarSistema();
     </script>
 </body>
+
 </html>

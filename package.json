@@ -7,9 +7,11 @@
   "scripts": {
     "dev": "electron .",
     "start": "electron .",
-    "postinstall": "electron-rebuild -f -w better-sqlite3",
     "rebuild": "electron-rebuild -f -w better-sqlite3",
-    "clean": "rmdir /s /q node_modules && del package-lock.json"
+    "postinstall": "electron-rebuild -f -w better-sqlite3",
+    "dist": "electron-builder",
+    "dist:win": "electron-builder --win",
+    "dist:linux": "electron-builder --linux"
   },
   "keywords": [],
   "author": "",
@@ -23,7 +25,28 @@
   },
   "devDependencies": {
     "electron": "^30.5.1",
+    "electron-builder": "^24.13.3",
     "electron-rebuild": "^3.2.9",
     "nodemon": "^3.1.14"
+  },
+  "build": {
+    "appId": "com.filaagentes.app",
+    "productName": "Fila Agentes",
+    "asar": true,
+    "asarUnpack": [
+      "**/node_modules/better-sqlite3/**/*"
+    ],
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "**/*"
+    ],
+    "win": {
+      "target": "nsis"
+    },
+    "linux": {
+      "target": "AppImage"
+    }
   }
 }

@@ -1,49 +1,26 @@
-name: Gerar Release Executável
+name: Release Automática
 on:
   push:
     tags:
       - "v*"
 jobs:
-  build-windows:
+  build:
     runs-on: windows-latest
     permissions:
       contents: write
     steps:
-      - name: Checkout do código
+      - name: Checkout
         uses: actions/checkout@v4
-      - name: Configurar Node.js
+      - name: Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
-          cache: "npm"
+          node-version: 20
+          cache: npm
       - name: Instalar dependências
         run: npm install
-      - name: Instalar electron-builder
-        run: npm install --save-dev electron-builder
-      - name: Rebuild para Electron (better-sqlite3)
+      - name: Rebuild better-sqlite3
         run: npx electron-rebuild -f -w better-sqlite3
-      - name: Gerar Executável (electron-builder)
+      - name: Build + Publish Electron
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: npm run dist
-      - name: Localizar build gerado
-        shell: powershell
-        run: |
-          New-Item -ItemType Directory -Force release_zip
-          # electron-builder gera normalmente em dist/win-unpacked ou dist/
-          $exe = Get-ChildItem -Path dist -Recurse -Filter "*.exe" | Select-Object -First 1
-          Copy-Item $exe.FullName release_zip/
-          if (Test-Path config.json) {
-            Copy-Item config.json release_zip/
-          }
-          if (Test-Path database/db.sqlite) {
-            New-Item -ItemType Directory -Force release_zip/database
-            Copy-Item database/db.sqlite release_zip/database/
-          }
-          Compress-Archive -Path release_zip/* -DestinationPath fila-agentes-completo.zip
-      - name: Criar Release
-        uses: softprops/action-gh-release@v2
-        with:
-          files: fila-agentes-completo.zip
-          name: Fila de Agentes ${{ github.ref_name }}
-          body: |
-            🚀 Release automática do sistema Fila de Agentes
-            📦 Build gerado com Electron Builder

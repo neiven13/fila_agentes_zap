@@ -30,7 +30,7 @@
     "nodemon": "^3.1.14"
   },
   "build": {
-    "appId": "com.filaagentes.app",
+    "appId": "com.fila-agentes.app",
     "productName": "Fila Agentes",
     "asar": true,
     "asarUnpack": [
